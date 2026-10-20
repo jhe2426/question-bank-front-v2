@@ -3,7 +3,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import './style.css';
 import 'katex/dist/katex.min.css';
 import './responsive.css';
-import { InlineMath } from 'react-katex';
+import { TestIcon, TestPagination, TestFooter, renderContentWithMath } from '../components/TestUi';
 import { usePagination } from 'src/hooks';
 import { Question, UserAnswer } from 'src/types/interfaces';
 import { useLocation, useNavigate, useParams } from 'react-router';
@@ -20,28 +20,6 @@ import { PostKillerExamGradingRequestDto } from 'src/apis/dto/request/killerExam
 import { PostPastExamGradingRequestDto } from 'src/apis/dto/request/pastExam';
 import { PostMockExamGradingRequestDto } from 'src/apis/dto/request/mockExam';
 import { PostIncorrectQuestionGradingRequestDto } from 'src/apis/dto/request/incorrectQuestions';
-
-// type: 시험 화면 장식 아이콘 종류 //
-type ExamIconName = 'document' | 'clock' | 'target' | 'chart' | 'guide' | 'send' | 'left' | 'right' | 'explanation';
-
-// component: 시험 화면 공통 아이콘 컴포넌트 //
-function ExamIcon({ name }: { name: ExamIconName }) {
-    // variable: 외부 라이브러리 없이 표시하는 아이콘 도형 //
-    const paths: Record<ExamIconName, React.ReactNode> = {
-        document: <><path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Zm0 0v6h6M8 13h8M8 17h6' /></>,
-        clock: <><circle cx='12' cy='12' r='9' /><path d='M12 6v6l4 2' /></>,
-        target: <><circle cx='12' cy='12' r='9' /><circle cx='12' cy='12' r='5' /><circle cx='12' cy='12' r='1' /></>,
-        chart: <><rect x='3' y='13' width='4' height='8' rx='1' /><rect x='10' y='7' width='4' height='14' rx='1' /><rect x='17' y='3' width='4' height='18' rx='1' /></>,
-        guide: <><path d='M9 18h6m-5 3h4M8 13a6 6 0 1 1 8 0c-1 1-1 2-1 3H9c0-1 0-2-1-3ZM12 1v1M3 5l1 1m16 0 1-1' /></>,
-        send: <><path d='m21 3-7 18-4-7-7-4 18-7Zm0 0L10 14' /></>,
-        left: <path d='m14 5-7 7 7 7' />,
-        right: <path d='m10 5 7 7-7 7' />,
-        explanation: <><rect x='4' y='4' width='16' height='16' rx='3' /><path d='M9 8h4a2 2 0 0 1 0 4H9m0-4v8' /></>
-    };
-
-    // render: 스크린 리더에서 제외하는 장식 아이콘 렌더링 //
-    return <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.7' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>{paths[name]}</svg>;
-}
 
 // interface: 시험 문제 레코드 컴포넌트 속성 //
 interface QuestionTableItemProps {
@@ -61,23 +39,12 @@ const QuestionTableItem = memo(({ question, selectedAnswer, showExplanation, dis
     const options = [option1, option2, option3, option4];
     const optionListClass = `exam-option-list${imageUrl ? ' has-image' : ''}`;
 
-    // function: 텍스트와 수식을 분리해서 렌더링하는 함수 //
-    const renderContentWithMath = (text: string) => {
-        if (!text) return null;
-        return text.split(/(\$.*?\$)/g).filter(Boolean).map((part, index) => (
-            part.startsWith('$') && part.endsWith('$')
-                ? <InlineMath key={index} math={part.slice(1, -1).trim()} />
-                : <span key={index}>{part}</span>
-        ));
-    };
-
     // render: 번호, 지문, 이미지, 객관식 보기 및 해설 렌더링 //
     return (
         <article className='exam-question' id={`exam-question-${questionOrder}`} aria-labelledby={`exam-question-title-${questionId}`} tabIndex={-1}>
             <span className='exam-question-number' aria-hidden='true'>{String(questionOrder).padStart(2, '0')}</span>
             <div className='exam-question-content'>
                 <div className='exam-question-heading'>
-                    <span className='exam-question-tag'>객관식</span>
                     <h2 id={`exam-question-title-${questionId}`}><span className='exam-sr-only'>{questionOrder}번 문제. </span>{renderContentWithMath(questionText)}</h2>
                 </div>
                 {imageUrl && (
@@ -101,7 +68,7 @@ const QuestionTableItem = memo(({ question, selectedAnswer, showExplanation, dis
                 </fieldset>
                 {showExplanation && shortExplanation && (
                     <div className='exam-explanation'>
-                        <h3><ExamIcon name='explanation' />해설</h3>
+                        <h3><TestIcon name='explanation' />해설</h3>
                         <div>{renderContentWithMath(shortExplanation)}</div>
                     </div>
                 )}
@@ -694,7 +661,7 @@ export default function Exam() {
 
     // render: 시험 응시 화면 컴포넌트 렌더링 //
     return (
-        <main className='exam-screen'>
+        <main className='test-screen exam-screen'>
             {/* render: 시험명과 유형별 정보 카드 */}
             <div className='exam-heading-row'>
                 <div className='exam-heading'>
@@ -704,7 +671,7 @@ export default function Exam() {
                 </div>
                 <section className='exam-info-card' aria-label='시험 정보'>
                     <div className={`exam-info-item${isPastExam ? ' exam-timer' : ''}`}>
-                        <span className='exam-info-icon'><ExamIcon name={isPastExam ? 'clock' : 'document'} /></span>
+                        <span className='exam-info-icon'><TestIcon name={isPastExam ? 'clock' : 'document'} /></span>
                         <div>
                             <span className='exam-info-label'>{isPastExam ? '남은 시간' : '시험 유형'}</span>
                             {isPastExam
@@ -713,7 +680,7 @@ export default function Exam() {
                         </div>
                     </div>
                     <div className='exam-info-item'>
-                        <span className='exam-info-icon'><ExamIcon name='document' /></span>
+                        <span className='exam-info-icon'><TestIcon name='document' /></span>
                         <div><span className='exam-info-label'>전체 문항</span><strong>{isQuestionLoading ? '불러오는 중' : `${totalQuestionCount}문항`}</strong></div>
                     </div>
                 </section>
@@ -734,19 +701,15 @@ export default function Exam() {
                         ))}
                     </div>
                     <div className='exam-actions'>
-                        <nav className='exam-pagination' aria-label='문제 페이지 이동'>
-                            <button type='button' className='exam-action-button' disabled={!isExamReady || currentPage <= 1} onClick={() => onPageChangeHandler(currentPage - 1)}><ExamIcon name='left' /><span>이전 문제</span></button>
-                            <span className='exam-page-count' aria-live='polite' aria-label={`${currentPage} / ${totalPage} 페이지`}>{currentPage} / {totalPage}</span>
-                            <button type='button' className='exam-action-button' disabled={!isExamReady || currentPage >= totalPage} onClick={() => onPageChangeHandler(currentPage + 1)}><span>다음 문제</span><ExamIcon name='right' /></button>
-                        </nav>
-                        <button type='button' className='exam-submit-button' onClick={onClickGradingButtonHandler} disabled={!canSubmit}><ExamIcon name='send' />{isSubmitting ? '제출 중…' : '답안 제출'}</button>
+                        <TestPagination currentPage={currentPage} totalPage={totalPage} disabled={!isExamReady} onPageChange={onPageChangeHandler} />
+                        <button type='button' className='exam-action-button exam-submit-button' onClick={onClickGradingButtonHandler} disabled={!canSubmit}><TestIcon name='send' />{isSubmitting ? '제출 중…' : '답안 제출'}</button>
                     </div>
                 </section>
 
                 {/* render: 답안 표기란, 실제 응답 진행률 및 응시 안내 */}
                 <aside className='exam-sidebar' aria-label='시험 진행 정보'>
                     <section className='exam-side-card exam-answer-sheet' aria-labelledby='exam-answer-title'>
-                        <h2 id='exam-answer-title'><span className='exam-side-icon'><ExamIcon name='target' /></span>답안 표기란</h2>
+                        <h2 id='exam-answer-title'><span className='exam-side-icon'><TestIcon name='target' /></span>답안 표기란</h2>
                         <div className='exam-answer-list'>
                             {isExamReady ? questionList.map(question => (
                                 <AnswerTableItem key={question.questionId} question={question} selectedAnswer={selectedAnswers[question.questionId]} onClick={onAnswerSheetClickHandler} onQuestionClick={onQuestionNavigateHandler} isCurrentPage={viewList.some(item => item.questionId === question.questionId)} disabled={isSubmitting} />
@@ -755,12 +718,12 @@ export default function Exam() {
                         <p className='exam-answer-hint'>문항 번호를 누르면 해당 문제로 이동합니다.</p>
                     </section>
                     <section className='exam-side-card exam-progress' aria-labelledby='exam-progress-title'>
-                        <div className='exam-side-heading'><h2 id='exam-progress-title'><span className='exam-side-icon'><ExamIcon name='chart' /></span>진행 현황</h2><span><strong>{answeredQuestionCount}</strong> / {totalQuestionCount} 문항</span></div>
+                        <div className='exam-side-heading'><h2 id='exam-progress-title'><span className='exam-side-icon'><TestIcon name='chart' /></span>진행 현황</h2><span><strong>{answeredQuestionCount}</strong> / {totalQuestionCount} 문항</span></div>
                         <div className='exam-progress-meter'><progress value={answeredQuestionCount} max={totalQuestionCount || 1} aria-label='답안 작성 진행률' /><span>{progressPercent}%</span></div>
                         <dl><div><dt>응답 완료</dt><dd>{answeredQuestionCount}문항</dd></div><div><dt>남은 문항</dt><dd>{remainingQuestionCount}문항</dd></div><div><dt>전체 문항</dt><dd>{totalQuestionCount}문항</dd></div></dl>
                     </section>
                     <section className='exam-guide' aria-labelledby='exam-guide-title'>
-                        <h2 id='exam-guide-title'><span className='exam-side-icon'><ExamIcon name='guide' /></span>응시 안내</h2>
+                        <h2 id='exam-guide-title'><span className='exam-side-icon'><TestIcon name='guide' /></span>응시 안내</h2>
                         <ul>
                             <li>답안은 제출 전까지 수정할 수 있습니다.</li>
                             <li>미응답 문항이 있으면 제출 전 확인합니다.</li>
@@ -772,7 +735,7 @@ export default function Exam() {
             </div>
 
             {/* render: 메인페이지와 동일한 톤의 서비스 하단 안내 */}
-            <footer className='exam-footer'><strong>ADsP 문제은행</strong><p>오늘의 한 문제가 내일의 자신감으로.</p><span>꾸준한 학습, 확실한 준비.</span></footer>
+            <TestFooter />
         </main>
     );
 }

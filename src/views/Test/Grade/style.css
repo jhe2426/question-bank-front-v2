@@ -1,0 +1,211 @@
+/* grade: 기존 정답·오답 이미지를 문제 번호와 답안 번호 위에 겹쳐 표시 */
+.test-screen.grade-screen .exam-question-number {
+    position: relative;
+    align-self: start;
+    text-align: center;
+}
+
+.test-screen.grade-screen .exam-answer-number {
+    position: relative;
+    color: var(--exam-blue);
+}
+
+.test-screen.grade-screen .question-number-icon,
+.test-screen.grade-screen .answer-number-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+.test-screen.grade-screen .question-number-icon.correct,
+.test-screen.grade-screen .answer-number-icon.correct {
+    background-image: url('src/assets/images/correct.png');
+}
+
+.test-screen.grade-screen .question-number-icon.incorrect,
+.test-screen.grade-screen .answer-number-icon.incorrect {
+    background-image: url('src/assets/images/incorrect.png');
+}
+
+.test-screen.grade-screen .question-number-icon.correct {
+    width: 70px;
+    height: 46px;
+}
+
+.test-screen.grade-screen .question-number-icon.incorrect {
+    width: 44px;
+    height: 44px;
+}
+
+.test-screen.grade-screen .answer-number-icon.correct {
+    width: 44px;
+    height: 29px;
+}
+
+.test-screen.grade-screen .answer-number-icon.incorrect {
+    width: 28px;
+    height: 28px;
+}
+
+/* result: 색상과 텍스트를 함께 제공하는 정답·오답·미응답 구분 */
+.test-screen.grade-screen .grade-result-tag {
+    flex-shrink: 0;
+    margin-top: 2px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.5;
+}
+
+.test-screen.grade-screen .grade-result-tag.is-correct {
+    background: #e8f7ef;
+    color: #15734c;
+}
+
+.test-screen.grade-screen .grade-result-tag.is-incorrect {
+    background: #fff0f1;
+    color: #c33244;
+}
+
+.test-screen.grade-screen .grade-result-tag.is-unanswered {
+    background: #eef1f6;
+    color: #61708a;
+}
+
+.test-screen.grade-screen .exam-option.is-correct {
+    border-color: #77c9a3;
+    background: #eefaf4;
+    color: #15734c;
+}
+
+.test-screen.grade-screen .exam-option.is-incorrect {
+    border-color: #ed8f9a;
+    background: #fff1f3;
+    color: #ba3044;
+}
+
+.test-screen.grade-screen .exam-option.is-correct .exam-option-number {
+    border-color: #198259;
+    color: #fff;
+    background: #198259;
+}
+
+.test-screen.grade-screen .exam-option.is-incorrect .exam-option-number {
+    border-color: #cb3e52;
+    background: #cb3e52;
+    color: #fff;
+}
+
+.test-screen.grade-screen .grade-option-state {
+    flex-shrink: 0;
+    align-self: center;
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.test-screen.grade-screen .grade-correct-answer {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* answer sheet: 선택한 답안만 정답은 초록색, 오답은 빨간색으로 표시 */
+.test-screen.grade-screen .exam-answer-option.is-correct.is-selected > span {
+    border-color: #198259;
+    background: #198259;
+    color: #fff;
+    font-weight: 700;
+}
+
+.test-screen.grade-screen .exam-answer-option.is-incorrect.is-selected > span {
+    border-color: #cb3e52;
+    background: #cb3e52;
+    color: #fff;
+}
+
+.test-screen.grade-screen .exam-answer-row.is-unanswered .exam-answer-number {
+    border: 1px dashed #aab6ca;
+}
+
+.test-screen.grade-screen .grade-answer-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 15px;
+    margin-top: 14px;
+    color: #66758d;
+    font-size: 11px;
+}
+
+.test-screen.grade-screen .grade-answer-legend > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.test-screen.grade-screen .grade-answer-legend > span::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #b4bfd0;
+}
+
+.test-screen.grade-screen .grade-answer-legend > .is-correct::before {
+    background: #198259;
+}
+
+.test-screen.grade-screen .grade-answer-legend > .is-incorrect::before {
+    background: #cb3e52;
+}
+
+/* score: 서버 획득 점수와 문항별 정답률을 구분 */
+.test-screen.grade-screen .grade-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f3f6fd;
+    color: #61708a;
+    font-size: 12px;
+}
+
+.test-screen.grade-screen .grade-score strong {
+    color: var(--exam-blue);
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+}
+
+.test-screen.grade-screen .grade-score small {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.test-screen.grade-screen .grade-accuracy-label,
+.test-screen.grade-screen .grade-result-scope {
+    margin-top: 12px;
+    color: #66758d;
+    font-size: 11px;
+}
+
+.test-screen.grade-screen .exam-progress-meter {
+    margin-top: 5px;
+}
+
+.test-screen.grade-screen .grade-return-button {
+    width: 100%;
+    margin-top: 14px;
+    border-color: #b4c8f1;
+    color: #315bc6;
+}

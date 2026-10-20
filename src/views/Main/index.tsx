@@ -373,7 +373,7 @@ export default function Main() {
             </section>
 
             {/* render: 서비스 하단 안내 */}
-            <footer className='main-footer'><span className='footer-brand'>ADsP 문제은행</span><p>오늘의 한 문제가 내일의 자신감으로.</p><span>꾸준한 학습, 확실한 준비.</span></footer>
+            <footer className='main-footer'><span className='footer-brand'>ADsP 문제은행</span><p>오늘의 한 문제가 내일의 자신감으로</p><span>꾸준한 학습, 확실한 준비</span></footer>
         </main>
     );
 }
