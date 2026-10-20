@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import './style.css';
 import './responsive.css';
 import UnitSelector from './UnitSelector';
+import ServiceFooter from 'src/components/ServiceFooter';
 import { getPastExamRoundListRequest, getUnitAndChapterListRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
 import { useNavigate } from 'react-router';
@@ -373,7 +374,7 @@ export default function Main() {
             </section>
 
             {/* render: 서비스 하단 안내 */}
-            <footer className='main-footer'><span className='footer-brand'>ADsP 문제은행</span><p>오늘의 한 문제가 내일의 자신감으로</p><span>꾸준한 학습, 확실한 준비</span></footer>
+            <ServiceFooter />
         </main>
     );
 }

@@ -3,16 +3,6 @@
     min-width: 0;
 }
 
-/* navigation: 기존 마이페이지 내부 메뉴 스타일 유지 */
-#mypage-wrapper .navigation-list div:last-child {
-    margin-right: 15px;
-}
-
-#mypage-wrapper .navigation-list div:hover {
-    text-decoration: underline;
-    cursor: pointer;
-}
-
 #main {
     display: flex;
     flex-direction: column;

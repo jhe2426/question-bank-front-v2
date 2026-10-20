@@ -948,28 +948,6 @@
     color: #64748b;
 }
 
-/* footer: 메인 화면 하단 서비스 안내 */
-#main-wrapper .main-footer {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    margin-top: 44px;
-    padding: 26px 0 30px;
-    border-top: 1px solid #dfe6f1;
-    color: #75839a;
-    font-size: 11px;
-}
-
-#main-wrapper .footer-brand {
-    color: #52647e;
-    font-size: 14px;
-    font-weight: 700;
-}
-
-#main-wrapper .main-footer > span:last-child {
-    margin-left: auto;
-}
-
 /* accessibility: 동작 줄이기 설정을 존중하는 전환 효과 */
 @media (prefers-reduced-motion: reduce) {
     #main-wrapper *, #layout-wrapper.main-page #top-bar button {

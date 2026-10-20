@@ -1,26 +1,115 @@
+/* password: 기존 입력 필드와 검증 메시지를 유지하는 계정 설정 카드 */
 #change-password-page-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 26px;
+    width: 100%;
+    min-width: 0;
+}
 
-    height: 660px;
+#change-password-page-container .password-form-card {
+    max-width: 520px;
+    margin: 28px auto 0;
+    padding: 26px;
+    border: 1px solid #e3eaf4;
+    border-radius: 12px;
+    background: #fbfcff;
+}
+
+#change-password-page-container .password-form-intro {
+    margin-bottom: 24px;
+}
+
+#change-password-page-container .password-form-intro strong {
+    color: #27466d;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+#change-password-page-container .password-form-intro p {
+    margin-top: 5px;
+    color: #7a89a0;
+    font-size: 12px;
+    word-break: keep-all;
 }
 
 #change-password-page-container .input-container {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+}
 
-    width: 450px;
+#change-password-page-container .input-box > .label {
+    color: #435775;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#change-password-page-container input {
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 13px;
+    border: 1px solid #dbe4f1;
+    border-radius: 8px;
+    background: #fff;
+    color: #253d5d;
+    font-size: 13px;
+}
+
+#change-password-page-container input::placeholder {
+    color: #98a5b8;
+    font-size: 12px;
+}
+
+#change-password-page-container input[aria-invalid='true'] {
+    border-color: #d97c8b;
+}
+
+#change-password-page-container .message {
+    height: auto;
+    min-height: 17px;
+    margin-top: 3px;
+    color: #c64154;
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 #change-password-page-container .button-container {
-    width: 450px;
+    width: 100%;
+    margin-top: 22px;
 }
 
 #change-password-page-container .button-container .button {
-    height: 35px;
-    font-size: 20px;
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#change-password-page-container .button.primary {
+    background: #3563df;
+    color: #fff;
+}
+
+#change-password-page-container .button.primary:hover {
+    background: #2851c5;
+}
+
+#change-password-page-container .button.disable {
+    background: #e6ecf5;
+    color: #7c8ba2;
+    cursor: not-allowed;
+}
+
+#change-password-page-container .password-policy-note {
+    max-width: 520px;
+    margin: 18px auto 6px;
+    color: #8391a6;
+    font-size: 11px;
+    line-height: 1.8;
+    word-break: keep-all;
 }

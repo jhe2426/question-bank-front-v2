@@ -37,7 +37,7 @@ const InputBox = forwardRef<HTMLInputElement, Props>((props, ref) => {
              <div className="label">{label}</div>
              <div className="input-contents">
                  <div className="input-area">
-                     <input ref={ref} type={type} value={value} placeholder={placeholder} onChange={onChange} onKeyDown={onKeyDown} readOnly={readOnly} />
+                     <input ref={ref} aria-label={label} aria-invalid={isErrorMessage && !!message} type={type} value={value} placeholder={placeholder} onChange={onChange} onKeyDown={onKeyDown} readOnly={readOnly} />
                      {onButtonClick && buttonName && <div className={buttonClass} onClick={onButtonClick}>{buttonName}</div>}
                  </div>
                  <div className={messageClass}>{message}</div>

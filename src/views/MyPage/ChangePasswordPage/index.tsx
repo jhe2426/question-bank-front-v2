@@ -194,7 +194,11 @@ export default function ChangePasswordPage(props: Props) {
 
   // render: 비밀번호 변경 페이지 컴포넌트 렌더링 //
   return (
-    <div id='change-password-page-container'>
+    <section id='change-password-page-container' aria-labelledby='change-password-title'>
+      {/* render: 학습 기록과 동일한 콘텐츠 제목 및 계정 안내 */}
+      <header className='mypage-content-heading'><div><h2 id='change-password-title'>비밀번호 변경</h2><p>계정을 안전하게 보호할 수 있도록 비밀번호를 변경하세요.</p></div></header>
+      <div className='password-form-card'>
+      <div className='password-form-intro'><strong>새 비밀번호 설정</strong><p>현재 비밀번호를 확인한 후 새 비밀번호를 입력해 주세요.</p></div>
       <div className='input-container'>
       <InputBox type={'password'} label={'현재 비밀번호'} value={currentPassword} placeholder={'현재 비밀번호를 입력하세요'} message={currentPasswordMessage} isErrorMessage onChange={onCurrentPasswordChangeHandler} onKeyDown={onCurrentPasswordKeyDownHandler} />
       <InputBox ref={newPasswordInputBoxRef} type={'password'} label={'새 비밀번호'} value={newPassword} placeholder={'특수문자 !@#$%^&*-_? 중 1개 이상을 포함해 입력해주세요'} message={newPasswordMessage} isErrorMessage onChange={onNewPasswordChangeHandler} onKeyDown={onNewPasswordKeyDownHandler} />
@@ -202,8 +206,10 @@ export default function ChangePasswordPage(props: Props) {
       </div> 
 
       <div className='button-container'>
-            <div className={changePasswordButtonClass} onClick={onChangeClickHandler}>변경하기</div>
+            <button type='button' className={changePasswordButtonClass} aria-disabled={!isChangeButtonActive} onClick={onChangeClickHandler}>변경하기</button>
       </div>
-    </div>
+      </div>
+      <p className='password-policy-note'>영문 대·소문자, 숫자, 특수문자를 포함한 8~20자 비밀번호를 사용해 주세요.</p>
+    </section>
   )
 }

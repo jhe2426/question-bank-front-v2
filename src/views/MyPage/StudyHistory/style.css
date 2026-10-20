@@ -1,46 +1,115 @@
+/* history: 기존 조회 목록과 동일한 순서의 7열 학습 기록 표 */
 #study-history-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 54px;
-    
-    margin-top: 70px;
+    width: 100%;
+    min-width: 0;
 }
 
-.study-history-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+#study-history-container .history-count {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #f0f5ff;
+    color: #5777b6;
+    font-size: 11px;
 }
 
-.study-history-table>.tr,
-.study-history-table>.study-history-row .tr {
-    display: flex;
-
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--Lightmode-Grey11);
-    height: 50px;
+#study-history-container .history-scroll-hint {
+    display: none;
+    margin: -8px 0 12px;
+    color: #7186a5;
+    font-size: 11px;
 }
 
-.study-history-table>.study-history-row:last-child .tr {
-    border: none;
+#study-history-container .history-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 9px 9px 0 0;
+    scrollbar-width: thin;
+    scrollbar-color: #c2d1ea #f6f8fc;
 }
 
-.study-history-table>.tr .th,
-.study-history-table>.study-history-row .tr .td {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    width: 115px;
-
-    font-size: 15px;
+#study-history-container .study-history-table {
+    width: 100%;
+    min-width: 680px;
+    table-layout: fixed;
+    border-spacing: 0;
+    border-collapse: separate;
+    text-align: center;
 }
-.study-history-table>.study-history-row .tr .td {
+
+#study-history-container .study-history-table > thead > tr > th {
+    padding: 14px 6px;
+    background: #f0f4fa;
+    border-top: 1px solid #e3eaf5;
+    border-bottom: 1px solid #dfe7f3;
+    font-size: 12px;
+    font-weight: 650;
+    color: #41536e;
+}
+
+#study-history-container .study-history-table > thead > tr > th:first-child { border-radius: 9px 0 0 0; }
+#study-history-container .study-history-table > thead > tr > th:last-child { border-radius: 0 9px 0 0; }
+#study-history-container .study-history-number { width: 7%; }
+#study-history-container .study-history-date { width: 18%; }
+#study-history-container .study-history-source-type { width: 27%; }
+#study-history-container .study-history-score { width: 9%; }
+#study-history-container .study-history-incorrect, #study-history-container .study-history-total { width: 12%; }
+#study-history-container .study-history-exam-result { width: 15%; }
+
+#study-history-container .study-history-row > .tr > td {
+    height: 58px;
+    padding: 7px 6px;
+    border-bottom: 1px solid #e4eaf3;
+    color: #40516b;
     font-size: 13px;
+    overflow-wrap: anywhere;
 }
 
+#study-history-container .study-history-row > .tr:hover > td {
+    background: #f9fbff;
+}
+
+#study-history-container .study-history-row > .tr > .study-history-date {
+    font-size: 12px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+#study-history-container .study-history-row > .tr > .study-history-source-type {
+    color: #203754;
+    font-weight: 550;
+    word-break: keep-all;
+}
+
+#study-history-container .study-history-row.is-expanded > .tr > td {
+    background: #edf5ff;
+    border-top: 1px solid #d5e6fc;
+    border-bottom-color: #e2edfc;
+}
+
+#study-history-container .history-icon-button {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    vertical-align: middle;
+}
+
+#study-history-container .history-icon-button:hover,
+#study-history-container .history-icon-button[aria-expanded='true'] {
+    background: #e5efff;
+    border-color: #d2e1fc;
+}
+
+#study-history-container .history-icon-button > span {
+    display: block;
+}
+
+/* icons: 기존 네 가지 아이콘 클래스·이미지 파일과 크기를 그대로 재사용 */
 .study-history-table>.study-history-row .tr .study-history-incorrect .past-exam-incorrect-icon {
     width: 25px;
     height: 25px;
@@ -86,185 +155,235 @@
     cursor: pointer;
 }
 
-.study-history-table>.study-history-row .tr .study-history-exam-result.pass{
-    color: var(--Red);
+/* result: 기존 합격·과락 판정에 따라 의미가 일치하는 색상 적용 */
+#study-history-container .history-result-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    color: #8995a6;
+    font-size: 11px;
+    white-space: nowrap;
 }
 
-.study-history-table>.study-history-row .tr .study-history-exam-result.fail{
-    color: var(--PrimaryLight4);
+#study-history-container .pass .history-result-badge {
+    color: #197852;
+    background: #eaf7ef;
 }
 
-.study-history-table .empty-message {
-    display: flex;
-    justify-self: center;
-
-    font-size: 17px;
-
-    padding-top: 20px;
-    margin-bottom: 500px;
+#study-history-container .fail .history-result-badge {
+    color: #c64154;
+    background: #fff0f2;
 }
 
-.past-exam-result-detail-wrapper {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    
-    transition: max-height 0.5s ease
+/* accordion: 선택한 기출 기록 바로 아래의 과목별 상세 카드 */
+#study-history-container .history-detail-row > td {
+    padding: 0 8px 10px;
+    background: #edf5ff;
+    border-bottom: 1px solid #d5e6fc;
 }
 
-.past-exam-result-detail-wrapper.open {
-    min-width: 100%;
-    max-height: 500px;
-    opacity: 1;
-    transition: max-height 1s ease
-}
-
-.past-exam-result-detail {
-    display: flex;
-    flex-direction: column;
+#study-history-container .past-exam-result-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 24px;
     align-items: center;
-    gap: 17px;
+    padding: 20px;
+    border: 1px solid #e0ebfa;
+    border-radius: 10px;
+    background: #f6faff;
+    text-align: left;
+}
 
+#study-history-container .unit-score-card {
     width: 100%;
-    background-color: var(--Second2);
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--Lightmode-Grey11);
-
+    border: 1px solid #dce5f2;
+    border-spacing: 0;
+    border-radius: 9px;
+    overflow: hidden;
+    background: #fff;
+    font-size: 12px;
 }
 
-.unit-score-card {
+#study-history-container .unit-score-card th, #study-history-container .unit-score-card td {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 500;
+    border-bottom: 1px solid #e3eaf4;
+}
+
+#study-history-container .unit-score-card-header th {
+    background: #f0f5fb;
+    color: #526782;
+    font-size: 11px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+#study-history-container .unit-score-card td,
+#study-history-container .unit-score-card th:last-child {
+    text-align: center;
+    border-left: 1px solid #e3eaf4;
+}
+
+#study-history-container .unit-score-card tr:last-child td,
+#study-history-container .unit-score-card tbody tr:last-child th {
+    border-bottom: 0;
+}
+
+#study-history-container .unit-score-badge {
+    display: inline-block;
+    min-width: 62px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+#study-history-container .unit-score-badge.fail {
+    background: #ffedef;
+    color: #c64154;
+}
+
+#study-history-container .unit-score-badge.pass {
+    background: #e8f6ee;
+    color: #197852;
+}
+
+#study-history-container .incorrect-question-button {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 12px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 7px;
+    background: #3563df;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#study-history-container .incorrect-question-button:hover {
+    background: #2851c5;
+}
+
+#study-history-container .unit-result-guide {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    color: #657995;
+    font-size: 12px;
+    line-height: 1.85;
+    word-break: keep-all;
+}
+
+#study-history-container .unit-result-guide > span {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e5eeff;
+    color: #3563df;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+#study-history-container .unit-result-guide strong {
+    display: inline-block;
+    margin-top: 6px;
+    color: #527199;
+    font-weight: 500;
+}
+
+#study-history-container .history-feedback {
+    padding: 20px 10px;
+    color: #66758d;
+    font-size: 12px;
+    text-align: center;
+}
+
+#study-history-container .empty-message {
     display: flex;
     flex-direction: column;
-
-    width: 237px;
-    height: 164px;
-
-    background-color: var(--White);
-    border-radius: 15px;
-    box-sizing: border-box;
-    border: 1px solid var(--Lightmode-Grey);
-
-    margin-top: 14px;
-}
-
-.unit-score-card .unit-score-card-header {
-    padding-left: 19px;
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--Lightmode-Grey);
-    height: 40px;
-}
-
-.unit-score-card-header .title {
-    font-size: 15px;
-    line-height: 40px;
-}
-
-.unit-score-card .unit-score-item {
-    padding-left: 19px;
-    padding-right: 17px;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    height: 40px;
-    border-bottom: 1px solid var(--Lightmode-Grey);
-}
-
-.unit-score-item .unit-name {
-    font-size: 12px;
-    line-height: 40px;
-}
-
-.unit-score-item .unit-score-badge {
-    display: flex;
     justify-content: center;
-    align-items: center;
-
-    width: 39px;
-    height: 16px;
-    border-radius: 3px;
-
-    font-size: 8px;
-    color: var(--White);
-}
-
-.unit-score-item .unit-score-badge.fail {
-    background-color: var(--Red2);
-}
-
-.unit-score-item .unit-score-badge.pass {
-    background-color: var(--Pass);
-}
-
-.past-exam-result-detail .incorrect-question-button {
-    width: 237px;
-    height: 30px;
-
-    border-radius: 8px;
-    background-color: var(--Primary);
-
-    color: var(--White);
-    font-size: 14px;
-    line-height: 30px;
+    gap: 12px;
+    min-height: 340px;
+    padding: 30px 16px;
+    color: #70809a;
+    font-size: 13px;
     text-align: center;
+}
 
-    margin-bottom: 16px;
+#study-history-container .empty-message strong {
+    color: #405775;
+    font-size: 16px;
+    font-weight: 600;
+}
 
-    cursor: pointer;
-}   
-
+/* pagination: 기존 8개 기록·최대 10개 페이지 번호 및 섹션 이동 유지 */
 #study-history-container .pagination-container {
     display: flex;
     justify-content: center;
+    margin-top: 22px;
+}
 
-    margin-bottom: 50px;
+#study-history-container .pagination-box,
+#study-history-container .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
 #study-history-container .pagination-box {
-    display: flex;
-    align-items: center;
-    gap: 32px;
+    gap: 12px;
 }
 
-#study-history-container .pagination-box .pagination-button {
-    width: 40px;
-    height: 40px;
-
-    background-size: 100% 100%;
-
-    cursor: pointer;
+#study-history-container .pagination-button,
+#study-history-container .pagination .page {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background-color: transparent;
+    color: #64758d;
+    font-size: 12px;
 }
 
-#study-history-container .pagination-button.disable {
-    cursor: default;
+#study-history-container .pagination-button {
+    flex-shrink: 0;
+    border-color: #e2e8f3;
+    border-radius: 8px;
+    background-size: 28px;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
-#study-history-container .pagination-box .pagination-button.left {
+#study-history-container .pagination-button.left {
     background-image: url('/src/assets/images/my-page-left.png');
 }
 
-#study-history-container .pagination-box .pagination-button.right {
+#study-history-container .pagination-button.right {
     background-image: url('/src/assets/images/my-page-right.png');
 }
 
-#study-history-container .pagination-box .pagination {
-    display: flex;
-    gap: 16px;    
+#study-history-container .pagination-button:disabled {
+    opacity: .35;
 }
 
-#study-history-container .pagination-box .pagination .page {
-    font-family: 'Pretendard';
-    font-size: 14px;
-    color: var(--Lightmode-Grey12);
- }
+#study-history-container .pagination .page:hover,
+#study-history-container .pagination-button:hover:not(:disabled) {
+    background-color: #edf3ff;
+}
 
- #study-history-container .pagination-box .pagination .page:hover {
-    color: var(--Lightmode-Grey13);
-    font-weight: 700;
-    cursor: pointer;
- }
-
- #study-history-container .pagination-box .pagination .page.active {
-    color: var(--Lightmode-Grey13);
-    font-weight: 700;
-    cursor: default;
- }
+#study-history-container .pagination .page.active {
+    background: #3563df;
+    color: #fff;
+    box-shadow: 0 3px 8px #3563df1c;
+    font-weight: 650;
+}

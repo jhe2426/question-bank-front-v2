@@ -380,19 +380,5 @@
         min-width: 0;
     }
 
-    #main-wrapper .main-footer {
-        flex-wrap: wrap;
-        gap: 8px 16px;
-        margin-top: 32px;
-        padding: 22px 0;
-    }
-
-    #main-wrapper .main-footer p {
-        width: 100%;
-    }
-
-    #main-wrapper .main-footer > span:last-child {
-        margin-left: 0;
-    }
 
 }

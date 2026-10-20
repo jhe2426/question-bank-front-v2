@@ -1,0 +1,44 @@
+/* footer: 메인 화면 하단 서비스 안내 */
+.service-footer {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 44px;
+    padding: 26px 0 30px;
+    border-top: 1px solid #dfe6f1;
+    color: #75839a;
+    font-size: 11px;
+}
+
+.service-footer .footer-brand {
+    color: #52647e;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.service-footer > span:last-child {
+    margin-left: auto;
+}
+
+.service-footer p {
+    margin: 0;
+}
+
+/* responsive: 메인·마이페이지 공통 모바일 푸터 */
+@media (max-width: 600px) {
+    .service-footer {
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: 32px;
+        padding: 22px 0;
+    }
+
+    .service-footer p {
+        width: 100%;
+    }
+
+    .service-footer > span:last-child {
+        margin-left: 0;
+    }
+
+}

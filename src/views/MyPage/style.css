@@ -1,54 +1,264 @@
+/* layout: 메인페이지와 동일한 색상·콘텐츠 너비를 마이페이지에만 적용 */
+#layout-wrapper.mypage-page {
+    --mypage-blue: #3563df;
+    --mypage-ink: #192941;
+    --mypage-muted: #66758d;
+    --mypage-border: #e1e7f1;
+    min-height: 100vh;
+    background: #f3f6fb;
+    color: var(--mypage-ink);
+    font-family: 'Pretendard', sans-serif;
+}
+
+#layout-wrapper.mypage-page #main {
+    display: block;
+    width: min(1200px, calc(100% - 64px));
+    min-width: 0;
+    margin: 28px auto 0;
+}
+
 #mypage-wrapper {
-    display: flex;
-    align-items: flex-start;
-    width:992px;
-    padding-bottom: 40px;
+    width: 100%;
+    min-width: 0;
+    line-height: 1.5;
+}
+
+#mypage-wrapper *, #mypage-wrapper *::before, #mypage-wrapper *::after {
+    box-sizing: border-box;
+}
+
+#mypage-wrapper h1, #mypage-wrapper h2, #mypage-wrapper p {
+    margin: 0;
+}
+
+#mypage-wrapper button, #mypage-wrapper input {
+    font: inherit;
+}
+
+#mypage-wrapper button {
+    cursor: pointer;
+}
+
+#mypage-wrapper button:disabled {
+    cursor: not-allowed;
+}
+
+#mypage-wrapper button:focus-visible, #mypage-wrapper input:focus-visible,
+#mypage-wrapper .history-table-scroll:focus-visible {
+    outline: 3px solid #88a8f0;
+    outline-offset: 3px;
+}
+
+#mypage-wrapper .mypage-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* intro: 실제 응시 기록에서 계산한 학습 요약 */
+#mypage-wrapper .mypage-intro {
+    display: grid;
+    grid-template-columns: minmax(270px, 1fr) minmax(0, 1.65fr);
+    align-items: center;
+    gap: 30px;
+    padding: 30px 28px;
+    margin-bottom: 26px;
+    border-radius: 18px;
+    background: linear-gradient(115deg, #e8f2ff, #f0f7ff 55%, #e7f1ff);
+}
+
+#mypage-wrapper .mypage-eyebrow {
+    color: var(--mypage-blue);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 1.4px;
+}
+
+#mypage-wrapper .mypage-intro h1 {
+    margin-top: 5px;
+    color: #152a4c;
+    font-size: 31px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+#mypage-wrapper .mypage-intro p {
+    margin-top: 8px;
+    color: #657997;
+    font-size: 13px;
+    word-break: keep-all;
+}
+
+#mypage-wrapper .mypage-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+    min-width: 0;
+}
+
+#mypage-wrapper .mypage-summary-card {
+    min-width: 0;
+    padding: 20px 18px;
+    border: 1px solid #ffffff;
+    border-radius: 12px;
+    background: #ffffffed;
+    box-shadow: 0 5px 22px #456c9a06;
+}
+
+#mypage-wrapper .mypage-summary dt {
+    color: #667b99;
+    font-size: 12px;
+    font-weight: 550;
+}
+
+#mypage-wrapper .mypage-summary dd {
+    margin: 7px 0 0;
+    color: #19365d;
+    font-size: 24px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+#mypage-wrapper .mypage-summary small {
+    margin-left: 3px;
+    font-size: 15px;
+}
+
+#mypage-wrapper .mypage-summary .summary-date {
+    font-size: 19px;
+    letter-spacing: -.5px;
+}
+
+/* workspace: 좌측 메뉴 카드와 우측 학습·계정 콘텐츠 카드 */
+#mypage-wrapper .mypage-workspace {
+    display: grid;
+    grid-template-columns: 214px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 20px;
+}
+
+#mypage-wrapper .mypage-sidebar, #mypage-wrapper .mypage-content {
+    min-width: 0;
+    border: 1px solid var(--mypage-border);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 7px 28px #28477504;
 }
 
 #mypage-wrapper .mypage-sidebar {
-    width: 170px;
-    min-height: 660px;
-
-    border-radius: 15px 0 0 15px;
-    background-color: var(--PrimaryLight3);
-
-    color: var(--White);
-}
-
-#mypage-wrapper .mypage-sidebar .title-box {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-
-    padding-top: 25px;
-    padding-left: 23px;
+    padding: 26px 14px 20px;
 }
 
-#mypage-wrapper .mypage-sidebar .title {
-    font-size: 26px;
+#mypage-wrapper .mypage-sidebar h2 {
+    padding: 0 12px;
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -.4px;
 }
 
-#mypage-wrapper .mypage-sidebar .navigation-list {
+#mypage-wrapper .navigation-list {
     display: flex;
     flex-direction: column;
+    gap: 9px;
+    margin-top: 22px;
+}
+
+#mypage-wrapper .navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 10px;
-
-    font-size: 16px;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #5d6e88;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 550;
+    transition: background .16s, color .16s;
 }
 
-#mypage-wrapper .mypage-sidebar .navigation-list .navigation:hover {
-    text-decoration: none;
-    color: var(--Black);
+#mypage-wrapper .navigation:hover {
+    background: #f3f7ff;
 }
 
-#mypage-wrapper .mypage-sidebar .navigation-list .navigation.active {
-    color: var(--Black);
-    cursor: default;
+#mypage-wrapper .navigation.active {
+    background: #eaf1ff;
+    color: #2d5bcf;
+    font-weight: 700;
+}
+
+#mypage-wrapper .mypage-menu-arrow {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    background: url('src/assets/images/page-right.png') center / contain no-repeat;
+    opacity: .45;
+}
+
+#mypage-wrapper .mypage-sidebar-note {
+    margin-top: auto;
+    padding: 46px 12px 0;
+    color: #8794a8;
+    font-size: 11px;
+    line-height: 1.8;
 }
 
 #mypage-wrapper .mypage-content {
-    flex: 1;
+    padding: 26px;
+    min-height: 612px;
+}
+
+#mypage-wrapper .mypage-content-heading {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+#mypage-wrapper .mypage-content-heading h2 {
+    font-size: 24px;
+    color: #172d4b;
+    font-weight: 750;
+    letter-spacing: -.6px;
+}
+
+#mypage-wrapper .mypage-content-heading p {
+    margin-top: 5px;
+    color: var(--mypage-muted);
+    font-size: 13px;
+    word-break: keep-all;
+}
+
+#mypage-wrapper .mypage-secondary-button {
+    min-height: 42px;
+    padding: 9px 16px;
+    border: 1px solid #d5e0f2;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--mypage-blue);
+    font-size: 13px;
+}
+
+#mypage-wrapper .service-footer {
+    margin-top: 26px;
+}
+
+/* accessibility: 사용자가 요청한 동작 줄이기 설정 적용 */
+@media (prefers-reduced-motion: reduce) {
+    #mypage-wrapper * {
+        transition: none;
+        scroll-behavior: auto;
+    }
 }
