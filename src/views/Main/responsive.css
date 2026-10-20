@@ -1,0 +1,398 @@
+/* responsive: 태블릿에서는 시험 카드를 두 열로 배치 */
+@media (max-width: 1024px) {
+    #layout-wrapper.main-page #main {
+        width: calc(100% - 40px);
+        margin-top: 24px;
+    }
+
+    #main-wrapper .main-hero {
+        grid-template-columns: 1.25fr 1fr;
+        min-height: 370px;
+    }
+
+    #main-wrapper .hero-copy {
+        padding: 32px 0 32px 30px;
+    }
+
+    #main-wrapper .hero-copy h1 {
+        font-size: 30px;
+    }
+
+    #main-wrapper .hero-art {
+        transform: scale(.8);
+        transform-origin: center right;
+    }
+
+    #main-wrapper .art-paper {
+        left: -10px;
+    }
+
+    #main-wrapper .art-chart {
+        right: 20px;
+    }
+
+    #main-wrapper .art-badge {
+        right: 28px;
+    }
+
+    #main-wrapper .overview-item {
+        gap: 9px;
+        padding: 0 12px;
+    }
+
+    #main-wrapper .overview-item p {
+        font-size: 11px;
+    }
+
+    #main-wrapper .overview-icon {
+        width: 35px;
+        height: 35px;
+    }
+
+    #main-wrapper .exam-type-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    #main-wrapper .exam-card-description {
+        min-height: 0;
+    }
+
+    #main-wrapper .mock-settings, #main-wrapper .past-settings {
+        gap: 24px;
+    }
+
+    #main-wrapper .unit-settings {
+        padding-left: 24px;
+    }
+
+}
+
+/* responsive: 작은 태블릿에서 히어로와 폼의 밀도 조정 */
+@media (max-width: 768px) {
+    #main-wrapper .hero-copy h1 {
+        font-size: 28px;
+    }
+
+    #main-wrapper .hero-art {
+        transform: scale(.68);
+    }
+
+    #main-wrapper .hero-features {
+        gap: 12px;
+    }
+
+    #main-wrapper .learning-overview {
+        padding: 20px 8px;
+    }
+
+    #main-wrapper .overview-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    #main-wrapper .overview-item h2 {
+        font-size: 13px;
+    }
+
+    #main-wrapper .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #main-wrapper .settings-heading {
+        margin: 0 24px;
+    }
+
+    #main-wrapper .settings-step {
+        display: none;
+    }
+
+    #main-wrapper .settings-body {
+        padding: 24px;
+    }
+
+    #main-wrapper .mock-settings, #main-wrapper .past-settings {
+        grid-template-columns: 1fr;
+    }
+
+    #main-wrapper .unit-settings {
+        padding: 23px 0 0;
+        border-top: 1px solid #e9edf4;
+        border-left: 0;
+    }
+
+    #main-wrapper .settings-footer {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 24px;
+        gap: 16px;
+    }
+
+    #main-wrapper .exam-start-button {
+        width: 100%;
+    }
+
+}
+
+/* responsive: 모바일에서는 시험 선택부터 시작까지 한 열로 배치 */
+@media (max-width: 600px) {
+    #layout-wrapper.main-page #main {
+        width: calc(100% - 32px);
+        margin-top: 20px;
+    }
+
+    #main-wrapper .main-hero {
+        display: block;
+        min-height: 0;
+        border-radius: 18px;
+    }
+
+    #main-wrapper .hero-copy {
+        padding: 30px 24px 0;
+    }
+
+    #main-wrapper .hero-eyebrow {
+        font-size: 9px;
+        letter-spacing: 1.5px;
+    }
+
+    #main-wrapper .hero-copy h1 {
+        font-size: clamp(24px, 6.3vw, 34px);
+        letter-spacing: -1px;
+        margin-top: 18px;
+    }
+
+    #main-wrapper .hero-copy > p {
+        font-size: 13px;
+    }
+
+    #main-wrapper .desktop-break {
+        display: none;
+    }
+
+    #main-wrapper .hero-features {
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    #main-wrapper .hero-features li {
+        font-size: 10px;
+    }
+
+    #main-wrapper .hero-art {
+        width: 320px;
+        height: 230px;
+        margin: 5px auto 0;
+        transform: none;
+    }
+
+    #main-wrapper .art-paper {
+        top: 15px;
+        left: 38px;
+        transform: rotate(-9deg) scale(.65);
+        transform-origin: top left;
+    }
+
+    #main-wrapper .art-chart {
+        right: 24px;
+        bottom: 16px;
+        transform: rotate(6deg) scale(.65);
+        transform-origin: bottom right;
+    }
+
+    #main-wrapper .art-badge {
+        top: 18px;
+        right: 66px;
+        transform: rotate(12deg) scale(.7);
+    }
+
+    #main-wrapper .art-orbit {
+        top: 40px;
+        left: 0;
+        width: 320px;
+        height: 150px;
+    }
+
+    #main-wrapper .orbit-two {
+        top: 50px;
+    }
+
+    #main-wrapper .spark-one {
+        right: 25px;
+        top: 95px;
+    }
+
+    #main-wrapper .spark-two {
+        left: 30px;
+        bottom: 30px;
+    }
+
+    #main-wrapper .learning-overview {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 22px;
+        margin-top: 16px;
+    }
+
+    #main-wrapper .overview-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 0;
+        text-align: left;
+    }
+
+    #main-wrapper .overview-item + .overview-item {
+        padding-top: 16px;
+        border-top: 1px solid #edf0f6;
+        border-left: 0;
+    }
+
+    #main-wrapper .overview-item p {
+        font-size: 12px;
+    }
+
+    #main-wrapper .overview-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    #main-wrapper .exam-catalog {
+        margin-top: 32px;
+    }
+
+    #main-wrapper .section-heading h2 {
+        font-size: 23px;
+    }
+
+    #main-wrapper .section-heading > p {
+        font-size: 12px;
+    }
+
+    #main-wrapper .exam-type-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    #main-wrapper .exam-type-card {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: 12px;
+        padding: 20px;
+    }
+
+    #main-wrapper .exam-card-top {
+        grid-column: 1 / -1;
+        margin-bottom: 12px;
+    }
+
+    #main-wrapper .exam-card-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    #main-wrapper .exam-card-title {
+        font-size: 18px;
+    }
+
+    #main-wrapper .exam-card-description {
+        grid-column: 1 / -1;
+        font-size: 12px;
+    }
+
+    #main-wrapper .exam-card-action {
+        grid-column: 2;
+        grid-row: 2;
+        gap: 8px;
+        align-self: center;
+        margin: 0 0 6px;
+        padding: 0;
+        border: 0;
+        font-size: 11px;
+    }
+
+    #main-wrapper .exam-settings {
+        margin-top: 22px;
+        border-radius: 14px;
+    }
+
+    #main-wrapper .settings-heading {
+        margin: 0 20px;
+        padding: 20px 0;
+    }
+
+    #main-wrapper .settings-heading h2 {
+        font-size: 19px;
+    }
+
+    #main-wrapper .settings-body {
+        padding: 22px 20px;
+    }
+
+    #main-wrapper .incorrect-options {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    #main-wrapper .incorrect-options .choice-option {
+        min-height: 50px;
+    }
+
+    #main-wrapper .killer-settings {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    #main-wrapper .killer-target {
+        width: 64px;
+        height: 64px;
+        border-radius: 17px;
+    }
+
+    #main-wrapper .killer-target svg {
+        width: 36px;
+        height: 36px;
+    }
+
+    #main-wrapper .killer-settings h3 {
+        font-size: 19px;
+    }
+
+    #main-wrapper .killer-settings p {
+        font-size: 12px;
+    }
+
+    #main-wrapper .settings-footer {
+        padding: 18px 20px;
+        border-radius: 0 0 14px 14px;
+    }
+
+    #main-wrapper .settings-footer p {
+        font-size: 11px;
+    }
+
+    #main-wrapper .exam-start-button {
+        min-width: 0;
+    }
+
+    #main-wrapper .main-footer {
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: 32px;
+        padding: 22px 0;
+    }
+
+    #main-wrapper .main-footer p {
+        width: 100%;
+    }
+
+    #main-wrapper .main-footer > span:last-child {
+        margin-left: 0;
+    }
+
+}

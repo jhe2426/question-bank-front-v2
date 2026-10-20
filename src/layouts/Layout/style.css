@@ -1,0 +1,187 @@
+/* layout: 공통 콘텐츠 레이아웃 */
+#layout-wrapper {
+    min-width: 0;
+}
+
+/* navigation: 기존 마이페이지 내부 메뉴 스타일 유지 */
+#mypage-wrapper .navigation-list div:last-child {
+    margin-right: 15px;
+}
+
+#mypage-wrapper .navigation-list div:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    justify-self: center;
+    gap: 18px;
+
+    margin-top: 84px;
+}
+
+#main.small-margin {
+    margin-top: 20px;
+}
+
+/* layout: 리뉴얼한 메인 화면에만 적용하는 콘텐츠 너비 및 배경 */
+#layout-wrapper.main-page {
+    min-width: 0;
+    min-height: 100vh;
+    background: #f3f6fb;
+    color: #192941;
+    font-family: 'Pretendard', sans-serif;
+}
+
+#layout-wrapper.main-page #main {
+    display: block;
+    width: min(1200px, calc(100% - 64px));
+    min-width: 0;
+    margin: 32px auto 0;
+}
+
+/* header: 모든 화면에서 사용하는 서비스 로고와 내비게이션 */
+#top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-sizing: border-box;
+    height: 88px;
+    font-family: 'Pretendard', sans-serif;
+    padding: 0 max(32px, calc((100% - 1200px) / 2));
+    border-bottom: 1px solid #e2e8f2;
+    background: var(--White);
+}
+
+#top-bar .main-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #172b4f;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+}
+
+#top-bar .main-brand-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: #eaf0ff;
+    color: #3563df;
+}
+
+#top-bar .main-brand-icon svg {
+    width: 29px;
+    height: 29px;
+}
+
+#top-bar .main-brand strong {
+    display: block;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -.7px;
+}
+
+#top-bar .main-brand small {
+    display: block;
+    margin-top: 5px;
+    color: #667c9c;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+}
+
+#top-bar .navigation-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#top-bar .navigation-list button {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    min-height: 42px;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #62718a;
+    white-space: nowrap;
+    transition: color .18s, background .18s;
+}
+
+#top-bar .navigation-list button:hover,
+#top-bar .navigation-list button[aria-current='page'] {
+    background: #edf2ff;
+    color: #2e58c9;
+    text-decoration: none;
+}
+
+#top-bar button:focus-visible {
+    outline: 3px solid #4878ee;
+    outline-offset: 3px;
+}
+
+/* responsive: 태블릿에서 공통 헤더의 간격 조정 */
+@media (max-width: 1024px) {
+    #top-bar {
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    #top-bar {
+        gap: 16px;
+    }
+
+    #top-bar .navigation-list {
+        gap: 2px;
+        font-size: 13px;
+    }
+
+    #top-bar .navigation-list button {
+        padding: 10px 12px;
+    }
+}
+
+/* responsive: 작은 화면에서 로고와 메뉴를 두 줄로 배치 */
+@media (max-width: 600px) {
+    #top-bar {
+        height: auto;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 14px;
+        padding: 18px 20px 12px;
+    }
+
+    #top-bar .navigation-list {
+        justify-content: center;
+        width: 100%;
+    }
+
+    #top-bar .navigation-list button {
+        padding: 10px 12px;
+    }
+}
+
+/* accessibility: 동작 줄이기 설정을 존중하는 메뉴 효과 */
+@media (prefers-reduced-motion: reduce) {
+    #top-bar .navigation-list button {
+        transition: none;
+    }
+}
