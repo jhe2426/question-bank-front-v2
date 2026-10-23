@@ -1,0 +1,5 @@
+simulation: admin-questions
+routing: path
+mocks:
+  - routeKey: backend
+    path: ../mocks/admin-questions/config.yaml

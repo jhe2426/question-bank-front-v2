@@ -14,6 +14,10 @@ export const INCORRECT_QUESTIONS_TEST_PATH = `${INCORRECT_QUESTIONS_PATH}/:sourc
 export const MY_PAGE_PATH = 'my-page';
 export const GRADING_PATH = 'grading';
 export const GRADING_VIEW_PATH = `${GRADING_PATH}/:groupId/:filter`;
+export const ADMIN_PATH = 'admin';
+export const ADMIN_UPLOAD_PATH = `${ADMIN_PATH}/upload`;
+export const ADMIN_QUESTIONS_PATH = `${ADMIN_PATH}/questions`;
+export const ADMIN_APPROVALS_PATH = `${ADMIN_PATH}/approvals`;
 export const OTHERS_PATH = '*';
 
 // variable: 절대 path 상수 //
@@ -30,3 +34,9 @@ export const INCORRECT_QUESTIONS_TEST_ABSOLUTE_PATH = (sourceType: string) =>
 export const MY_PAGE_ABSOLUTE_PATH = `${ROOT_PATH}${MY_PAGE_PATH}`;
 export const GRADING_VIEW_ABSOLUTE_PATH = (groupId: number | string, filter: string) => 
     `${ROOT_PATH}${GRADING_PATH}/${groupId}/${filter}`;
+
+// variable: 관리자 화면 절대 path 상수 //
+export const ADMIN_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_PATH}`;
+export const ADMIN_UPLOAD_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_UPLOAD_PATH}`;
+export const ADMIN_QUESTIONS_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_QUESTIONS_PATH}`;
+export const ADMIN_APPROVALS_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_APPROVALS_PATH}`;

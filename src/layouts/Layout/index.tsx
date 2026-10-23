@@ -1,16 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { matchPath, Outlet, useLocation, useNavigate } from 'react-router';
 
 import './style.css';
 import { logoutRequest, refreshAccessTokenRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
 import { useCookies } from 'react-cookie';
-import { RefreshAccessTokenResponseDto } from 'src/apis/dto/response/auth';
+import useAdminAccess from 'src/hooks/admin-access.hook';
 import { ResponseDto } from 'src/apis/dto/response';
-import { AUTH_ABSOLUTE_PATH, GRADING_VIEW_PATH, INCORRECT_QUESTIONS_TEST_PATH, KILLER_EXAM_TEST_PATH, MAIN_ABSOLUTE_PATH, MOCK_EXAM_TEST_PATH, MY_PAGE_ABSOLUTE_PATH, PAST_EXAM_TEST_PATH } from 'src/constants';
+import { ADMIN_ABSOLUTE_PATH, AUTH_ABSOLUTE_PATH, GRADING_VIEW_PATH, INCORRECT_QUESTIONS_TEST_PATH, KILLER_EXAM_TEST_PATH, MAIN_ABSOLUTE_PATH, MOCK_EXAM_TEST_PATH, MY_PAGE_ABSOLUTE_PATH, PAST_EXAM_TEST_PATH } from 'src/constants';
 
 // component: 공통 레이아웃 컴포넌트 //
-export default function Layout() {
+export default function Layout({ standalone = false }: { standalone?: boolean }) {
 
     // state: 경로 상태 //
     const { pathname } = useLocation();
@@ -20,6 +20,10 @@ export default function Layout() {
 
     // state: accessToken 정보 상태 //
     const { accessToken, setAccessToken, clearAuth } = useAuthStore();
+
+    // state: 일반 화면의 관리자 메뉴는 서버 확인 후 표시 //
+    const { status: adminAccess } = useAdminAccess(!standalone);
+    const restoreRequest = useRef<{ csrfToken: string; promise: ReturnType<typeof refreshAccessTokenRequest> } | null>(null);
 
     // variable: csrf token //
     const csrfToken = cookies['csrfToken'];
@@ -40,18 +44,6 @@ export default function Layout() {
 
     // function: 네비게이터 함수 //
     const navigator = useNavigate();
-
-    // function: refresh access token response 처리 함수 //
-    const refreshAccessTokenResponse = (responseBody: RefreshAccessTokenResponseDto | ResponseDto | null) => {
-        const isSuccess = responseBody !== null && responseBody.code === 'SU';
-        if(!isSuccess) {
-            navigator(AUTH_ABSOLUTE_PATH);
-            return;
-        }
-        
-        const { accessToken } = responseBody as RefreshAccessTokenResponseDto;
-        setAccessToken(accessToken);
-    };
 
     // function: logout response 처리 함수 //
     const logoutResponse = (responseBody: ResponseDto | null) => {
@@ -87,21 +79,35 @@ export default function Layout() {
         logoutRequest(accessToken).then(logoutResponse);
     };
 
-    // effect: 컴포넌트 로드 시 실행할 함수 //
+    // effect: 기존 CSRF 쿠키로 로그인 복구 후 관리자 확인을 시작 //
     useEffect(() => {
+        if (accessToken) { restoreRequest.current = null; return; }
+        if (!csrfToken) { navigator(AUTH_ABSOLUTE_PATH, { replace: true }); return; }
 
-        if(accessToken) return;
-        
-
-        if(!accessToken && !csrfToken) {
-            navigator(AUTH_ABSOLUTE_PATH);
-            return;
+        let cancelled = false;
+        // StrictMode effect 재실행 시 같은 refresh 요청을 중복 전송하지 않습니다.
+        if (!restoreRequest.current || restoreRequest.current.csrfToken !== csrfToken) {
+            restoreRequest.current = { csrfToken, promise: refreshAccessTokenRequest(csrfToken) };
         }
+        const fail = () => {
+            if (cancelled) return;
+            clearAuth();
+            navigator(AUTH_ABSOLUTE_PATH, { replace: true });
+        };
+        restoreRequest.current.promise.then(response => {
+            if (cancelled) return;
+            if (response?.code !== 'SU' || !('accessToken' in response) || typeof response.accessToken !== 'string' || !response.accessToken) {
+                fail();
+                return;
+            }
+            setAccessToken(response.accessToken);
+        }).catch(fail);
+        return () => { cancelled = true; };
+    }, [accessToken, csrfToken, navigator, setAccessToken, clearAuth]);
 
-        if (!accessToken && csrfToken) {
-            refreshAccessTokenRequest(csrfToken).then(refreshAccessTokenResponse);
-        }
-    }, []);
+    // render: 토큰 복구 전에는 관리자 라우트 및 메뉴를 렌더링하지 않음 //
+    if (!accessToken) return <main className='auth-access-status' role='status'>로그인 정보를 확인하고 있습니다…</main>;
+    if (standalone) return <Outlet />;
 
     // render: 공통 레이아웃 컴포넌트 렌더링 //
     return (
@@ -117,6 +123,7 @@ export default function Layout() {
                 <nav className='navigation-list' aria-label='주 메뉴'>
                     <button type='button' onClick={onMainPageClickHandler} aria-current={isMainPage ? 'page' : undefined}>메인페이지</button>
                     <button type='button' onClick={onMyPageClickHandler} aria-current={pathname.startsWith(MY_PAGE_ABSOLUTE_PATH) ? 'page' : undefined}>마이페이지</button>
+                    {adminAccess === 'allowed' && <button type='button' onClick={() => navigator(ADMIN_ABSOLUTE_PATH)}>관리자 페이지</button>}
                     <button type='button' onClick={onLogoutClickHandler}>로그아웃</button>
                 </nav>
             </header>

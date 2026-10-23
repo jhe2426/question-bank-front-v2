@@ -1,3 +1,4 @@
+import { PostQuestionsRequestDto } from './dto/request/admin';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PostExamResponseDto, ResponseDto } from './dto/response';
 import { ApprovalCodeVerifyRequestDto, IdCheckRequestDto, PhoneNumberAuthRequestDto, PhoneNumberAuthVerifyRequestDto, SignInRequestDto, SignUpRequestDto } from './dto/request/auth';
@@ -59,6 +60,9 @@ const PATCH_USER_PASSWORD_URL = `${MY_PAGE_MODULE_URL}/change-password`;
 const GET_LEARNING_RECORD_LIST_URL = `${MY_PAGE_MODULE_URL}/learning-records`;
 const GET_UNIT_GRADING_RESULT_LIST_URL = (groupId: number) => `${MY_PAGE_MODULE_URL}/${groupId}/unit-grading-results`;
 
+const GET_ADMIN_CHECK_URL = `${API_DOMAIN}/api/admin/check`;
+const POST_ADMIN_QUESTIONS_URL = `${API_DOMAIN}/api/admin/questions`;
+
 // variable: refresh 토큰을 사용하여 access Token 발급 진행 여부 //
 let isRefreshing = false;
 
@@ -94,6 +98,10 @@ api.interceptors.response.use(
             window.location.href = AUTH_ABSOLUTE_PATH;
             return Promise.reject(error);
         }
+
+        // 재발급 후에도 401이면 같은 요청을 반복하지 않습니다.
+        if (originalRequet._retry) return Promise.reject(error);
+        originalRequet._retry = true;
 
         // description: 이미 리프레쉬 요청 중이면 다른 요청에 대해서 새로 발급한 액세스 토큰을 담아서 요청 //
         if (isRefreshing) {
@@ -340,4 +348,33 @@ export const getUnitGradingResultListRequest = async (accessToken: string, group
         .then(responseSuccessHandler<GetUnitGradingResultListResponseDto>)
         .catch(responseErrorHandler);
     return responseBody;
+};
+
+// function: 수정한 문제 JSON과 모든 이미지를 한 번에 등록하는 API 요청 함수 //
+export const postAdminQuestionsRequest = async (requestBody: PostQuestionsRequestDto, images: File[], accessToken: string): Promise<ResponseDto | null> => {
+    const formData = new FormData();
+    formData.append('jsonFile', new File([JSON.stringify(requestBody)], 'questions.json', { type: 'application/json' }));
+    images.forEach(image => formData.append('images', image));
+
+    // multipart boundary는 브라우저/Axios가 지정하며 기존 인증 및 재발급 인스턴스를 재사용합니다.
+    return api.post(POST_ADMIN_QUESTIONS_URL, formData, bearerAuthorization(accessToken))
+        .then(responseSuccessHandler<ResponseDto>)
+        .catch((error: AxiosError<{ code?: string; message?: string; detail?: string }>) => {
+            if (!error.response) return null;
+            const { data, status } = error.response;
+            return {
+                code: data?.code || `HTTP_${status}`,
+                message: data?.message || data?.detail || (status === 403
+                    ? '관리자 권한이 필요합니다.'
+                    : `문제 등록에 실패했습니다. (HTTP ${status})`)
+            };
+        });
+};
+
+// function: 기존 인증 인스턴스로 서버의 관리자 접근 허용 여부 확인 //
+export const getAdminCheckRequest = async (accessToken: string): Promise<number | null> => {
+    return api.get<ResponseDto>(GET_ADMIN_CHECK_URL, { ...bearerAuthorization(accessToken), timeout: 15000 })
+        // 프록시의 HTML 200 등은 관리자 확인 성공으로 처리하지 않습니다.
+        .then(response => response.status === 200 && response.data?.code === 'SU' ? 200 : null)
+        .catch((error: AxiosError<ResponseDto>) => error.response?.status ?? null);
 };

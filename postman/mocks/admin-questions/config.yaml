@@ -1,0 +1,10 @@
+version: 1
+name: admin-questions
+slug: admin-questions
+protocol: http
+port: 4911
+interceptRequests: true
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { Route, Routes, useNavigate } from 'react-router';
+import { Navigate, Route, Routes, useNavigate } from 'react-router';
 import Layout from './layouts/Layout';
 import { AUTH_ABSOLUTE_PATH, AUTH_PATH, GRADING_VIEW_PATH, INCORRECT_QUESTIONS_TEST_PATH, KILLER_EXAM_TEST_PATH, MAIN_ABSOLUTE_PATH, MAIN_PATH, MOCK_EXAM_TEST_PATH, MY_PAGE_ABSOLUTE_PATH, MY_PAGE_PATH, OTHERS_PATH, PAST_EXAM_TEST_PATH } from './constants';
 import Auth from './views/Auth';
@@ -9,12 +9,24 @@ import Main from './views/Main';
 import Exam from './views/Test/Exam';
 import Grade from './views/Test/Grade';
 import MyPage from './views/MyPage';
+import Admin from './views/Admin';
+import AdminRoute from './components/AdminRoute';
+import { ADMIN_PATH, ADMIN_UPLOAD_PATH, ADMIN_QUESTIONS_PATH, ADMIN_APPROVALS_PATH, ADMIN_UPLOAD_ABSOLUTE_PATH } from './constants';
 
 function App() {
   return (
     <Routes>
       <Route index element={<Index />} />
       <Route path={AUTH_PATH} element={<Auth />} />
+
+      <Route element={<Layout standalone />}>
+        <Route element={<AdminRoute />}>
+          <Route path={ADMIN_PATH} element={<Navigate to={ADMIN_UPLOAD_ABSOLUTE_PATH} replace />} />
+          <Route path={ADMIN_UPLOAD_PATH} element={<Admin />} />
+          <Route path={ADMIN_QUESTIONS_PATH} element={<Admin />} />
+          <Route path={ADMIN_APPROVALS_PATH} element={<Admin />} />
+        </Route>
+      </Route>
 
       <Route element={<Layout />}>
         <Route path={MAIN_PATH} element={<Main />} />
