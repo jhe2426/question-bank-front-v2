@@ -4,5 +4,6 @@ import { UserAnswer } from "src/types/interfaces";
 export default interface PostIncorrectQuestionGradingRequestDto {
     sourceType: string;
     detailedType: string;
+    timeSpentSeconds: number;
     userAnswers: UserAnswer[];
 }

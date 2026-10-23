@@ -4,5 +4,6 @@ import { UserAnswer } from 'src/types/interfaces';
 export default interface PostPastExamGradingRequestDto {
     detailedType: string;
     pastExamId: number;
+    timeSpentSeconds: number;
     userAnswers: UserAnswer[];
 }

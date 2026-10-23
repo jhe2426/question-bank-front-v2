@@ -4,5 +4,6 @@ import { UserAnswer } from 'src/types/interfaces';
 export default interface PostMockExamGradingRequestDto {
     detailedType: string;
     sessionId: number;
+    timeSpentSeconds: number;
     userAnswers: UserAnswer[];
 }

@@ -155,9 +155,16 @@ export default function Exam() {
     // state: 답안 표기란에서 이동할 문항 번호 //
     const [targetQuestionOrder, setTargetQuestionOrder] = useState<number | null>(null);
 
+
     // reference: 중복 제출 방지 및 타이머에서 사용할 최신 제출 함수 //
     const isSubmittingRef = useRef<boolean>(false);
     const submitPastExamRef = useRef<() => void>(() => {});
+
+    // reference: 시험 시작 시간 // 
+    const examStartTimeRef = useRef<{
+        examKey: string;
+        startedAt: number;
+    } | null>(null);
 
     // variable: RESPONSE CODE 구조 분해 상수 //
     const { DATABASE_ERROR, AUTHENTICATION_FAILED, PAST_EXAM_QUESTION_NOT_FOUND, NOT_EXIST_QUESTION_ID, SUCCESS} = RESPONSE_CODE;
@@ -303,6 +310,18 @@ export default function Exam() {
             }; 
         return acc;
         }, {} as Record<number, { answer: number; questionOrder: number }>);
+    };
+
+    // function: 시험 전체 소요 시간 계산 (초) //
+    const getTimeSpentSeconds = (): number => {
+        const startTime = examStartTimeRef.current?.startedAt;
+
+        if (startTime === undefined) return 0;
+
+        return Math.max(
+            0,
+            Math.floor((Date.now() - startTime) / 1000)
+        );
     };
 
     // function: get past exam question list response 처리 함수 //
@@ -489,6 +508,7 @@ export default function Exam() {
         const requestBody: PostPastExamGradingRequestDto = {
             detailedType: examInfo.title,
             pastExamId: Number(examInfo?.pastExamId),
+            timeSpentSeconds: getTimeSpentSeconds(),
             userAnswers
         };
 
@@ -512,6 +532,7 @@ export default function Exam() {
         if (!examInfo) return;
         isSubmittingRef.current = true;
         setIsSubmitting(true);
+        const timeSpentSeconds = getTimeSpentSeconds();
         const sourceType = examInfo.type;  
         const userAnswers: UserAnswer[] = Object.entries(selectedAnswers).map(
             ([questionId, value]) => ({
@@ -525,6 +546,7 @@ export default function Exam() {
         if (sourceType === 'killer' && sessionId) {
             const requestBody: PostKillerExamGradingRequestDto = {
                 sessionId,
+                timeSpentSeconds,
                 userAnswers
             };
 
@@ -536,6 +558,7 @@ export default function Exam() {
             const requestBody: PostPastExamGradingRequestDto = {
                 detailedType: examInfo.title,
                 pastExamId: Number(examInfo?.pastExamId),
+                timeSpentSeconds,
                 userAnswers
             };
 
@@ -547,6 +570,7 @@ export default function Exam() {
             const requestBody: PostMockExamGradingRequestDto = {
                 detailedType: examInfo.title,
                 sessionId,
+                timeSpentSeconds,
                 userAnswers
             };
 
@@ -558,6 +582,7 @@ export default function Exam() {
             const requestBody: PostIncorrectQuestionGradingRequestDto = {
                 sourceType: examInfo.sourceType,
                 detailedType: examInfo.title,
+                timeSpentSeconds,
                 userAnswers
             };
 
@@ -566,10 +591,24 @@ export default function Exam() {
         }
     };
 
-    // effect: 타이머 자동 제출이 마지막으로 선택한 답안을 사용하도록 갱신 //
+    // effect: 시험 문제 로딩 완료 시 시간 측정 시작 //
     useEffect(() => {
-        submitPastExamRef.current = submitPastExam;
-    });
+        if (!isExamReady) return;
+    
+        const examKey = [
+            pathname,
+            sessionId ?? '',
+            ...questionList.map(question => question.questionId)
+        ].join('-');
+    
+        if (examStartTimeRef.current?.examKey === examKey) return;
+    
+        examStartTimeRef.current = {
+            examKey,
+            startedAt: Date.now()
+        };
+    
+    }, [isExamReady, pathname, sessionId, questionList]);
 
     // effect: 선택한 문항이 렌더링되면 해당 문제로 스크롤 및 키보드 초점 이동 //
     useEffect(() => {
@@ -648,8 +687,8 @@ export default function Exam() {
             setTime((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    alert('시험 시간이 종료되었습니다. 자동으로 제출됩니다.');
                     submitPastExamRef.current();
+                    alert('시험 시간이 종료되었습니다. 자동으로 제출됩니다.');
                     return 0;
                 }
             return prev - 1;
