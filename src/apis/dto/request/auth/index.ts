@@ -2,6 +2,7 @@ import SignInRequestDto from './sign-in.request.dto';
 import IdCheckRequestDto from './id-check.request.dto';
 import PhoneNumberAuthRequestDto from './phone-number-auth.request.dto';
 import PhoneNumberAuthVerifyRequestDto from './phone-number-auth-verify.request.dto';
+import ApprovalCodeRequestDto from './approval-code.request.dto';
 import ApprovalCodeVerifyRequestDto from './approval-code-verify.request.dto';
 import SignUpRequestDto from './sign-up.request.dto';
 
@@ -10,6 +11,7 @@ export type {
     IdCheckRequestDto,
     PhoneNumberAuthRequestDto,
     PhoneNumberAuthVerifyRequestDto,
+    ApprovalCodeRequestDto,
     ApprovalCodeVerifyRequestDto,
     SignUpRequestDto
 }

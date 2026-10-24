@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
-import { postAdminQuestionsRequest } from 'src/apis';
+import { approvalCodeRequest, postAdminQuestionsRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
 import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH } from 'src/constants';
 import QuestionCard from './QuestionCard';
@@ -22,17 +22,54 @@ function AdminIcon({ name, size = 20, strokeWidth = 1.8, ...props }: React.SVGPr
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>{paths[name]}</svg>;
 }
 
-// component: 승인번호 화면 (기존 미리보기 유지) //
+// component: 승인번호 발송 화면 //
 function ApprovalPanel() {
+    const { accessToken } = useAuthStore();
     const [recipient, setRecipient] = useState('');
-    const [message, setMessage] = useState('');
+    const [message, setMessage] = useState<{ tone: 'error' | 'success'; text: string } | null>(null);
+    const [isSending, setIsSending] = useState(false);
+    const sendingRef = useRef(false);
+
+    // event handler: 전화번호 형식 확인 후 실제 승인번호 발송 API 요청 //
+    const sendApprovalCode = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (sendingRef.current) return;
+        setMessage(null);
+        const phoneNumber = recipient.replace(/[\s-]/g, '');
+        if (!/^[0-9]{11}$/.test(phoneNumber)) {
+            setMessage({ tone: 'error', text: '전화번호를 숫자 11자리로 입력해주세요.' });
+            return;
+        }
+        if (!accessToken) {
+            setMessage({ tone: 'error', text: '로그인 상태를 확인해주세요.' });
+            return;
+        }
+        sendingRef.current = true;
+        setIsSending(true);
+        try {
+            const response = await approvalCodeRequest({ phoneNumber }, accessToken);
+            if (response?.code === 'SU') {
+                setMessage({ tone: 'success', text: `${phoneNumber}로 승인번호를 발송했습니다.` });
+            } else {
+                setMessage({ tone: 'error', text: response?.message || '발송 결과를 확인하지 못했습니다. 연결 상태를 확인해주세요.' });
+            }
+        } catch {
+            setMessage({ tone: 'error', text: '발송 결과를 확인하지 못했습니다. 연결 상태를 확인해주세요.' });
+        } finally {
+            sendingRef.current = false;
+            setIsSending(false);
+        }
+    };
+
     return <section className='qb-admin-card qb-admin-approval-card'>
         <h2>승인번호 관리</h2>
-        <p className='qb-admin-caption'>승인번호 화면은 미리보기이며 실제 발송하지 않습니다.</p>
-        <form className='qb-admin-approval-form' onSubmit={event => { event.preventDefault(); setMessage(recipient.trim() ? '미리보기 화면에서는 실제 승인번호가 발송되지 않습니다.' : '발송 대상을 입력해주세요.'); }}>
-            <label htmlFor='qb-recipient'>발송 대상</label><input id='qb-recipient' value={recipient} onChange={event => setRecipient(event.target.value)} placeholder='발송 대상을 입력하세요' /><button type='submit'>승인번호 발송</button>
+        <p className='qb-admin-caption'>입력한 전화번호로 승인번호를 문자 발송합니다.</p>
+        <form className='qb-admin-approval-form' onSubmit={sendApprovalCode} aria-busy={isSending}>
+            <label htmlFor='qb-recipient'>수신 전화번호</label>
+            <input id='qb-recipient' type='tel' autoComplete='tel' value={recipient} disabled={isSending} onChange={event => { setRecipient(event.target.value); setMessage(null); }} placeholder='01012345678' />
+            <button type='submit' disabled={isSending}>{isSending ? '발송 중…' : '승인번호 발송'}</button>
         </form>
-        {message && <p role='alert' className='qb-admin-form-message'>{message}</p>}
+        {message && <p role={message.tone === 'error' ? 'alert' : 'status'} className={`qb-editor-result ${message.tone}`}>{message.text}</p>}
     </section>;
 }
 
@@ -205,7 +242,7 @@ export default function AdminPage() {
         </aside>
         <main className='qb-admin-main'>
             <div className='qb-admin-breadcrumb'><span>{isApprovalPage ? '관리' : '문제 관리'}</span><AdminIcon name='chevron' size={15} aria-hidden='true' /><strong>{title}</strong></div>
-            <header className='qb-admin-heading'><h1>{title}</h1><p>{isApprovalPage ? '승인번호 발송 화면을 확인합니다.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
+            <header className='qb-admin-heading'><h1>{title}</h1><p>{isApprovalPage ? '수신 전화번호를 입력하고 승인번호를 발송하세요.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
             {isApprovalPage ? <ApprovalPanel /> : <form onSubmit={event => event.preventDefault()} aria-busy={isSubmitting}>
                 {!isListPage && <section className='qb-admin-card qb-admin-upload-card'>
                     <h2>문제 데이터 업로드</h2>

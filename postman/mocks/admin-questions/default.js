@@ -33,6 +33,15 @@ http.createServer(async (req, res) => {
       option1: '첫 번째 보기', option2: '두 번째 보기', option3: '세 번째 보기', option4: '네 번째 보기', imageUrl: null, shortExplanation: null
     }] });
   }
+  // AuthController.approvalCode / ApprovalCodeRequestDto. No actual SMS delivery.
+  if (req.method === 'POST' && req.url === '/api/v1/auth/approval-code') {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    let body;
+    try { body = JSON.parse(raw); } catch { return send(400, { code: 'VF', message: 'Validation failed.' }); }
+    if (typeof body.phoneNumber !== 'string' || !/^[0-9]{11}$/.test(body.phoneNumber)) return send(400, { code: 'VF', message: 'Validation failed.' });
+    if (req.headers.authorization === 'Bearer test-server-error') return send(500, { code: 'SSF', message: 'Failed to send verification code via SMS' });
+    return send(201, { code: 'SU', message: 'Success.' });
+  }
   if (req.method === 'POST' && req.url === '/api/v1/auth/refresh') {
     if (req.headers['x-csrf-token'] !== 'test-csrf') return send(403, { code: 'VF', message: 'Validation failed.' });
     return send(200, { code: 'SU', message: 'Success.', accessToken: 'test-refreshed' });

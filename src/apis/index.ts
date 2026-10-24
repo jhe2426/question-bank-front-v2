@@ -1,7 +1,7 @@
 import { PostQuestionsRequestDto } from './dto/request/admin';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PostExamResponseDto, ResponseDto } from './dto/response';
-import { ApprovalCodeVerifyRequestDto, IdCheckRequestDto, PhoneNumberAuthRequestDto, PhoneNumberAuthVerifyRequestDto, SignInRequestDto, SignUpRequestDto } from './dto/request/auth';
+import { ApprovalCodeRequestDto, ApprovalCodeVerifyRequestDto, IdCheckRequestDto, PhoneNumberAuthRequestDto, PhoneNumberAuthVerifyRequestDto, SignInRequestDto, SignUpRequestDto } from './dto/request/auth';
 import { GetUniversityListResponseDto, RefreshAccessTokenResponseDto, SignInResponseDto } from './dto/response/auth';
 import { useAuthStore } from 'src/stores';
 import { AUTH_ABSOLUTE_PATH } from 'src/constants';
@@ -28,6 +28,7 @@ const GET_UNIVERSITY_LIST_API_URL = `${AUTH_MODULE_URL}/universities`;
 const ID_CHECK_URL = `${AUTH_MODULE_URL}/id-check`;
 const PHONE_NUMBER_AUTH_URL = `${AUTH_MODULE_URL}/phone-number/auth-code`;
 const PHONE_NUMBER_AUTH_VERIFY_URL = `${AUTH_MODULE_URL}/phone-number/auth-code/verify`;
+const APPROVAL_CODE_URL = `${AUTH_MODULE_URL}/approval-code`;
 const APPROVAL_CODE_VERIFY_URL = `${AUTH_MODULE_URL}/approval-code/verify`;
 const SIGN_UP_URL = `${AUTH_MODULE_URL}/sign-up`;
 const REFRESH_ACCESS_TOKEN_URL = `${AUTH_MODULE_URL}/refresh`;
@@ -199,6 +200,13 @@ export const getUniversityListRequest = async () => {
         .then(responseSuccessHandler<GetUniversityListResponseDto>)
         .catch(responseErrorHandler);
     return responseBody;
+};
+
+// function: 관리자 화면의 승인번호 발송 API 요청 함수 //
+export const approvalCodeRequest = async (requestBody: ApprovalCodeRequestDto, accessToken: string): Promise<ResponseDto | null> => {
+    return api.post(APPROVAL_CODE_URL, requestBody, bearerAuthorization(accessToken))
+        .then(responseSuccessHandler<ResponseDto>)
+        .catch(responseErrorHandler);
 };
 
 // function: 승인번호 확인 API 요청 함수 //
