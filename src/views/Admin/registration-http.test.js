@@ -35,6 +35,18 @@ describeHttp('actual Axios multipart contract over local HTTP', () => {
     expect(request.raw).toContain('filename="question.png"');
     expect(request.raw).toContain('filename="detail.jpg"');
   });
+  test('multipart JSON contains edited numeric pastExamRound and no internal pastExamId', async () => {
+    const questions = parseQuestionFile(JSON.stringify({ questions: [{ ...draft().questions[0], questionType: '기출문제', pastExamId: 123, pastExamRound: 38, questionOrder: 5 }] }));
+    questions[0].pastExamRound = 39;
+    const body = buildQuestionsRequest(questions);
+    expect((await postAdminQuestionsRequest(body, [], 'test-admin')).code).toBe('SU');
+    const calls = await records();
+    const raw = calls[calls.length - 1].raw;
+    expect(raw).toContain('"pastExamRound":39');
+    expect(raw).toContain('"questionOrder":5');
+    expect(raw).not.toContain('"pastExamRound":"39"');
+    expect(raw).not.toContain('pastExamId');
+  });
   test('sends no images part when there are no images', async () => {
     expect((await postAdminQuestionsRequest(draft(), [], 'test-admin')).code).toBe('SU');
     const calls = await records();

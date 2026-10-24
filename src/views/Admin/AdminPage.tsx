@@ -4,7 +4,7 @@ import { approvalCodeRequest, postAdminQuestionsRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
 import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH } from 'src/constants';
 import QuestionCard from './QuestionCard';
-import { buildQuestionsRequest, IMAGE_ACCEPT, parseQuestionFile, QuestionDraft, SelectedImage, validateImageFiles, validateQuestions } from './question-draft';
+import { buildQuestionsRequest, connectQuestionImages, IMAGE_ACCEPT, parseQuestionFile, QuestionDraft, SelectedImage, validateImageFiles, validateQuestions } from './question-draft';
 import 'katex/dist/katex.min.css';
 import './style.css';
 
@@ -132,6 +132,7 @@ export default function AdminPage() {
         const sequence = ++readSequenceRef.current;
         setMessage(null);
         if (!/\.json$/i.test(file.name)) {
+            setIsParsing(false);
             setMessage({ tone: 'error', text: '.json 파일을 선택해주세요.' });
             return;
         }
@@ -140,7 +141,7 @@ export default function AdminPage() {
             const parsedQuestions = parseQuestionFile(await file.text());
             if (sequence !== readSequenceRef.current) return;
             if (questions.length && !window.confirm('현재 편집 중인 문제를 새 JSON의 문제로 바꿀까요?')) return;
-            setQuestions(parsedQuestions);
+            setQuestions(connectQuestionImages(parsedQuestions, imageRef.current));
             setJsonFilename(file.name);
             setHasValidated(false);
             setFilter('전체');
@@ -152,17 +153,19 @@ export default function AdminPage() {
     };
 
     const addImages = (files: File[]) => {
-        if (locked || requestRef.current || !files.length) return;
+        if (isSubmitting || isRegistered || requestRef.current || !files.length) return;
         const error = validateImageFiles(files, imageRef.current);
         if (error) { setMessage({ tone: 'error', text: error }); return; }
         const additions = files.map(file => ({ file, previewUrl: URL.createObjectURL(file) }));
-        setSelectedImages([...imageRef.current, ...additions]);
+        const nextImages = [...imageRef.current, ...additions];
+        setSelectedImages(nextImages);
+        setQuestions(current => connectQuestionImages(current, nextImages));
         setMessage(null);
     };
 
     // event handler: 참조 중인 이미지 삭제 시 확인 후 문제와 해설 참조도 함께 해제 //
     const deleteImage = (filename: string) => {
-        if (locked || requestRef.current) return;
+        if (isSubmitting || isRegistered || requestRef.current) return;
         const references = questions.flatMap((question, index) => question.imageFileName === filename || question.detailedExplanation?.imageFileName === filename ? [index + 1] : []);
         if (references.length && !window.confirm(`${references.join(', ')}번 문제에서 사용 중인 ${filename}을(를) 삭제하고 이미지 연결도 해제할까요?`)) return;
         const removed = imageRef.current.find(image => image.file.name === filename);
@@ -181,7 +184,7 @@ export default function AdminPage() {
     const handleDrop = (event: React.DragEvent, kind: 'json' | 'images') => {
         event.preventDefault();
         setDragging(null);
-        if (locked) return;
+        if (isSubmitting || isRegistered) return;
         const files = Array.from(event.dataTransfer.files);
         if (kind === 'json') {
             if (files.length !== 1) { setMessage({ tone: 'error', text: 'JSON 파일은 한 개만 선택해주세요.' }); return; }
@@ -247,23 +250,23 @@ export default function AdminPage() {
                 {!isListPage && <section className='qb-admin-card qb-admin-upload-card'>
                     <h2>문제 데이터 업로드</h2>
                     <p className='qb-admin-caption'>파일 선택만으로는 저장되지 않습니다. 이미지가 없는 문제도 등록할 수 있습니다.</p>
-                    <fieldset className='qb-editor-upload-fields' disabled={locked}>
+                    <fieldset className='qb-editor-upload-fields' disabled={isSubmitting || isRegistered}>
                         <legend className='qb-admin-sr-only'>JSON 및 이미지 파일 선택</legend>
                         <div className='qb-editor-file-grid'>
                             <div className='qb-admin-file-field'>
                                 <strong>JSON 파일 <span className='qb-admin-required'>*</span></strong>
                                 <input ref={jsonInputRef} className='qb-admin-sr-only' type='file' accept='.json,application/json' aria-label='JSON 파일 선택' onChange={event => { void selectJson(event.target.files?.[0]); event.target.value = ''; }} />
-                                <button type='button' className={`qb-admin-dropzone ${dragging === 'json' ? 'is-dragging' : ''}`} onClick={() => jsonInputRef.current?.click()} onDragOver={event => { event.preventDefault(); if (!locked) setDragging('json'); }} onDragLeave={() => setDragging(null)} onDrop={event => handleDrop(event, 'json')}>
+                                <button type='button' className={`qb-admin-dropzone ${dragging === 'json' ? 'is-dragging' : ''}`} onClick={() => jsonInputRef.current?.click()} onDragOver={event => { event.preventDefault(); if (!isSubmitting && !isRegistered) setDragging('json'); }} onDragLeave={() => setDragging(null)} onDrop={event => handleDrop(event, 'json')}>
                                     <AdminIcon name='file' size={32} aria-hidden='true' /><span>{isParsing ? 'JSON을 읽고 있습니다…' : 'JSON 파일을 드래그하거나 클릭하여 선택하세요.'}</span><small>.json · questions 배열</small>
                                 </button>
                                 {jsonFilename && <div className='qb-admin-selected-file'><span>{jsonFilename} · {questions.length}문제</span><button type='button' aria-label='JSON 파일 제거' onClick={() => {
-                                    if (window.confirm('선택한 JSON과 편집 중인 문제를 제거할까요?')) { readSequenceRef.current += 1; setQuestions([]); setJsonFilename(''); setHasValidated(false); setMessage(null); }
+                                    if (window.confirm('선택한 JSON과 편집 중인 문제를 제거할까요?')) { readSequenceRef.current += 1; setIsParsing(false); setQuestions([]); setJsonFilename(''); setHasValidated(false); setMessage(null); }
                                 }}><AdminIcon name='close' size={16} /></button></div>}
                             </div>
                             <div className='qb-admin-file-field'>
                                 <strong>이미지 파일 <span className='qb-admin-optional'>(선택)</span></strong>
                                 <input ref={imageInputRef} className='qb-admin-sr-only' type='file' accept={IMAGE_ACCEPT} multiple aria-label='이미지 파일 선택' onChange={event => { addImages(Array.from(event.target.files || [])); event.target.value = ''; }} />
-                                <button type='button' className={`qb-admin-dropzone ${dragging === 'images' ? 'is-dragging' : ''}`} onClick={() => imageInputRef.current?.click()} onDragOver={event => { event.preventDefault(); if (!locked) setDragging('images'); }} onDragLeave={() => setDragging(null)} onDrop={event => handleDrop(event, 'images')}>
+                                <button type='button' className={`qb-admin-dropzone ${dragging === 'images' ? 'is-dragging' : ''}`} onClick={() => imageInputRef.current?.click()} onDragOver={event => { event.preventDefault(); if (!isSubmitting && !isRegistered) setDragging('images'); }} onDragLeave={() => setDragging(null)} onDrop={event => handleDrop(event, 'images')}>
                                     <AdminIcon name='image' size={32} aria-hidden='true' /><span>이미지 파일을 여러 개 드래그하거나 클릭하여 선택하세요.</span><small>PNG, JPG, JPEG, WEBP · 파일당 10MB 이하</small>
                                 </button>
                             </div>

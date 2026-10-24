@@ -13,7 +13,7 @@ export interface AdminQuestionDto {
     shortExplanation: string | null;
     detailedExplanation: { content: string | null; imageFileName: string | null } | null;
     tags: string | null;
-    pastExamId: number | null;
+    pastExamRound: number | null;
     questionOrder: number | null;
 }
 

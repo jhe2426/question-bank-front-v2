@@ -16,11 +16,32 @@ export interface QuestionDraft {
     shortExplanation: string;
     detailedExplanation: { content: string; imageFileName: string } | null;
     tags: string;
-    pastExamId: string;
+    pastExamRound: number | null;
     questionOrder: string;
 }
 
 export interface SelectedImage { file: File; previewUrl: string }
+// function: 한글 조합 방식과 파일명 앞뒤 공백 차이를 동일하게 비교 //
+const imageNameKey = (filename: string) => filename.normalize('NFC').trim();
+
+export const findSelectedImage = (filename: string | undefined, images: SelectedImage[]): SelectedImage | undefined => {
+    if (!filename || !imageNameKey(filename)) return undefined;
+    const exact = images.find(image => image.file.name === filename);
+    if (exact) return exact;
+    const matches = images.filter(image => imageNameKey(image.file.name) === imageNameKey(filename));
+    return matches.length === 1 ? matches[0] : undefined;
+};
+
+// function: 서버가 원본 파일명으로 찾을 수 있도록 JSON 참조를 실제 선택 파일명에 맞춤 //
+export const connectQuestionImages = (questions: QuestionDraft[], images: SelectedImage[]): QuestionDraft[] => questions.map(question => ({
+    ...question,
+    imageFileName: findSelectedImage(question.imageFileName, images)?.file.name ?? question.imageFileName,
+    detailedExplanation: question.detailedExplanation ? {
+        ...question.detailedExplanation,
+        imageFileName: findSelectedImage(question.detailedExplanation.imageFileName, images)?.file.name ?? question.detailedExplanation.imageFileName
+    } : null
+}));
+
 export interface QuestionIssue { key: string; number: number; messages: string[] }
 export const OPTION_FIELDS = ['option1', 'option2', 'option3', 'option4'] as const;
 export const IMAGE_ACCEPT = '.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp';
@@ -46,6 +67,10 @@ export const parseQuestionFile = (text: string): QuestionDraft[] => {
             if (typeof value === 'string' || (numeric && typeof value === 'number')) return String(value);
             throw new Error(`${index + 1}번 문제의 ${field} 형식이 올바르지 않습니다.`);
         };
+        const pastExamRound = item.pastExamRound ?? null;
+        if (pastExamRound !== null && typeof pastExamRound !== 'number') {
+            throw new Error(`${index + 1}번 문제의 pastExamRound는 숫자여야 합니다.`);
+        }
         const detail = item.detailedExplanation;
         if (detail != null && !isObject(detail)) throw new Error(`${index + 1}번 문제의 detailedExplanation은 객체 또는 null이어야 합니다.`);
         const readDetail = (field: string) => {
@@ -60,7 +85,7 @@ export const parseQuestionFile = (text: string): QuestionDraft[] => {
             imageFileName: read('imageFileName'), option1: read('option1'), option2: read('option2'),
             option3: read('option3'), option4: read('option4'), answer: read('answer', true),
             shortExplanation: read('shortExplanation'), tags: read('tags'),
-            pastExamId: read('pastExamId', true), questionOrder: read('questionOrder', true),
+            pastExamRound, questionOrder: read('questionOrder', true),
             detailedExplanation: detail == null ? null : { content: readDetail('content'), imageFileName: readDetail('imageFileName') }
         };
     });
@@ -68,7 +93,6 @@ export const parseQuestionFile = (text: string): QuestionDraft[] => {
 
 // function: 문제 번호별 필수값, DTO 길이, 태그 및 이미지 참조 검증 //
 export const validateQuestions = (questions: QuestionDraft[], images: SelectedImage[]): QuestionIssue[] => {
-    const filenames = new Set(images.map(image => image.file.name));
     return questions.flatMap((question, index) => {
         const messages: string[] = [];
         if (!['모의고사', '기출문제'].includes(question.questionType)) messages.push('문제 유형을 모의고사 또는 기출문제로 선택해주세요.');
@@ -81,7 +105,7 @@ export const validateQuestions = (questions: QuestionDraft[], images: SelectedIm
         });
         if (!/^[1-4]$/.test(question.answer)) messages.push('정답 번호는 1~4 중 선택해주세요.');
         const validateImage = (filename: string, label: string) => {
-            if (filename.trim() && !filenames.has(filename)) messages.push(`${label} 파일이 없습니다: ${filename}`);
+            if (filename.trim() && !findSelectedImage(filename, images)) messages.push(`${label} 파일이 없습니다: ${filename}`);
         };
         validateImage(question.imageFileName, '문제 이미지');
         if (question.detailedExplanation) {
@@ -90,7 +114,7 @@ export const validateQuestions = (questions: QuestionDraft[], images: SelectedIm
             validateImage(detail.imageFileName, '상세 해설 이미지');
         }
         if (question.questionType === '기출문제') {
-            if (!positiveInteger(question.pastExamId)) messages.push('기출 회차 ID를 1 이상의 정수로 입력해주세요.');
+            if (question.pastExamRound === null || !Number.isInteger(question.pastExamRound) || question.pastExamRound < 1 || question.pastExamRound > 2147483647) messages.push('기출 회차(pastExamRound)를 1 이상의 정수로 입력해주세요.');
             if (!positiveInteger(question.questionOrder)) messages.push('기출문제 순서를 1 이상의 정수로 입력해주세요.');
             if (question.tags.trim()) messages.push('기출문제에는 모의고사 태그를 사용할 수 없습니다. 태그를 지워주세요.');
         } else if (question.questionType === '모의고사' && question.tags.trim()) {
@@ -115,18 +139,18 @@ export const buildQuestionsRequest = (questions: QuestionDraft[]): PostQuestions
             imageFileName: nullableText(question.detailedExplanation.imageFileName)
         } : null,
         tags: question.questionType === '모의고사' ? nullableText(question.tags) : null,
-        pastExamId: question.questionType === '기출문제' ? Number(question.pastExamId) : null,
+        pastExamRound: question.questionType === '기출문제' ? question.pastExamRound : null,
         questionOrder: question.questionType === '기출문제' ? Number(question.questionOrder) : null
     }))
 });
 
 export const validateImageFiles = (files: File[], existing: SelectedImage[]): string | null => {
-    const names = new Set(existing.map(image => image.file.name));
+    const names = new Set(existing.map(image => imageNameKey(image.file.name)));
     for (const file of files) {
         if (!/\.(png|jpe?g|webp)$/i.test(file.name) || (file.type && !['image/png', 'image/jpeg', 'image/webp'].includes(file.type))) return `${file.name}: PNG, JPG, JPEG, WEBP 이미지를 선택해주세요.`;
         if (!file.size || file.size > 10 * 1024 * 1024) return `${file.name}: 비어 있지 않은 10MB 이하 이미지를 선택해주세요.`;
-        if (names.has(file.name)) return `중복된 이미지 파일명입니다: ${file.name}`;
-        names.add(file.name);
+        if (names.has(imageNameKey(file.name))) return `중복된 이미지 파일명입니다: ${file.name}`;
+        names.add(imageNameKey(file.name));
     }
     return null;
 };

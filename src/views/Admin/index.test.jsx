@@ -51,7 +51,7 @@ test('drops JSON and multiple images without saving; edits live preview and subm
   await open();
   await selectJson([{
     ...question, imageFileName: 'question.png', detailedExplanation: { content: '원래 해설', imageFileName: 'explanation.jpg' }
-  }, { ...question, questionType: '기출문제', tags: null, pastExamId: 7, questionOrder: 2 }]);
+  }, { ...question, questionType: '기출문제', tags: null, pastExamRound: 7, questionOrder: 2 }]);
   const images = [new File(['png'], 'question.png', { type: 'image/png' }), new File(['jpg'], 'explanation.jpg', { type: 'image/jpeg' })];
   fireEvent.drop(screen.getByRole('button', { name: /이미지 파일을 여러 개/ }), { dataTransfer: { files: images } });
   expect(screen.getByAltText('1번 문제 이미지')).toHaveAttribute('src', 'blob:question.png');
@@ -65,7 +65,7 @@ test('drops JSON and multiple images without saving; edits live preview and subm
   change('간단 해설', '수정한 간단 해설');
   change('상세 해설 내용', '수정한 상세 해설');
   change('모의고사 기출 회차 태그', '35,36,37');
-  change('기출 회차 ID', '8', 2);
+  change('기출 회차', '8', 2);
   change('기출문제 순서', '3', 2);
   const preview = within(screen.getByRole('region', { name: '1번 문제 미리보기' }));
   expect(preview.getByRole('heading', { name: '수정한 문제' })).toBeInTheDocument();
@@ -81,7 +81,7 @@ test('drops JSON and multiple images without saving; edits live preview and subm
   const [body, sentImages, token] = postAdminQuestionsRequest.mock.calls[0];
   expect(body.questions[0]).toMatchObject({ sectionId: 9, questionText: '수정한 문제', option2: '수정한 정답', answer: 2, difficulty: '상', tags: '35,36,37', detailedExplanation: { content: '수정한 상세 해설', imageFileName: 'explanation.jpg' } });
   expect(body.questions[0]).not.toHaveProperty('key');
-  expect(body.questions[1]).toMatchObject({ pastExamId: 8, questionOrder: 3, tags: null });
+  expect(body.questions[1]).toMatchObject({ pastExamRound: 8, questionOrder: 3, tags: null });
   expect(sentImages).toEqual(images);
   expect(token).toBe('test-token');
   expect(screen.getByRole('button', { name: '등록 중…' })).toBeDisabled();
@@ -150,8 +150,8 @@ test('type editing and filters retain every question; validation covers hidden c
   await selectJson([question, question, question, { ...question, questionType: '기출문제', tags: null }]);
   expect(card(4).getByRole('button', { name: '펼치기' })).toBeInTheDocument();
   change('문제 유형', '기출문제');
-  expect(card().getByLabelText('기출 회차 ID')).toHaveValue('');
-  change('기출 회차 ID', '5');
+  expect(card().getByLabelText('기출 회차')).toHaveValue(null);
+  change('기출 회차', '5');
   change('기출문제 순서', '1');
   fireEvent.click(screen.getByRole('button', { name: '모의고사', pressed: false }));
   expect(screen.queryByRole('heading', { name: '1번 문제' })).not.toBeInTheDocument();
@@ -159,7 +159,7 @@ test('type editing and filters retain every question; validation covers hidden c
   expect(screen.getByRole('alert')).toHaveTextContent('4번 문제');
   expect(postAdminQuestionsRequest).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: '전체', pressed: false }));
-  expect(card(4).getByLabelText('기출 회차 ID')).toBeInTheDocument();
+  expect(card(4).getByLabelText('기출 회차')).toBeInTheDocument();
 });
 
 test('admin route preserves login redirect and hides administrator content before login', async () => {
@@ -167,4 +167,74 @@ test('admin route preserves login redirect and hides administrator content befor
   render(<MemoryRouter initialEntries={['/admin/upload']}><App /></MemoryRouter>);
   await screen.findByText('로그인 화면');
   expect(screen.queryByRole('heading', { name: '문제 업로드' })).not.toBeInTheDocument();
+});
+
+
+test('legacy JSON prompts for an actual round and submits the edited numeric round without internal ID', async () => {
+  await open();
+  await selectJson([{ ...question, questionType: '기출문제', tags: null, pastExamId: 123, questionOrder: 5 }]);
+  expect(card().getByLabelText('기출 회차')).toHaveValue(null);
+  expect(card().getByText(/기출 회차\(pastExamRound\)를 입력해주세요/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '문제 등록' }));
+  expect(postAdminQuestionsRequest).not.toHaveBeenCalled();
+  expect(screen.getByRole('alert')).toHaveTextContent('pastExamRound');
+  change('기출 회차', '39');
+  expect(card().getByLabelText('기출 회차')).toHaveValue(39);
+  expect(card().getByText('기출 회차: 39회 · 문항 순서: 5')).toBeInTheDocument();
+  postAdminQuestionsRequest.mockResolvedValue({ code: 'SU', message: 'Success.' });
+  fireEvent.click(screen.getByRole('button', { name: '문제 등록' }));
+  await screen.findByRole('status');
+  expect(postAdminQuestionsRequest.mock.calls[0][0].questions[0]).toMatchObject({ pastExamRound: 39, questionOrder: 5 });
+  expect(postAdminQuestionsRequest.mock.calls[0][0].questions[0]).not.toHaveProperty('pastExamId');
+});
+
+
+test('images added while JSON is still being read are connected when parsing completes', async () => {
+  await open();
+  let finishRead;
+  const file = jsonFile([{ ...question, imageFileName: 'question.png' }]);
+  file.text = () => new Promise(resolve => { finishRead = resolve; });
+  fireEvent.change(screen.getByLabelText('JSON 파일 선택'), { target: { files: [file] } });
+  const image = new File(['png'], 'question.png', { type: 'image/png' });
+  fireEvent.drop(screen.getByRole('button', { name: /이미지 파일을 여러 개/ }), { dataTransfer: { files: [image] } });
+  await act(async () => finishRead(JSON.stringify({ questions: [{ ...question, imageFileName: 'question.png' }] })));
+  expect(await screen.findByAltText('1번 문제 이미지')).toHaveAttribute('src', 'blob:question.png');
+  expect(postAdminQuestionsRequest).not.toHaveBeenCalled();
+});
+
+test('JSON then Korean image files updates both previews and sends actual uploaded filenames', async () => {
+  await open();
+  const filename = '문제.png'.normalize('NFD');
+  const detailName = '해설.png'.normalize('NFD');
+  await selectJson([{ ...question, imageFileName: '문제.png', detailedExplanation: { content: '설명', imageFileName: '해설.png' } }]);
+  fireEvent.click(screen.getByRole('button', { name: '문제 등록' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('파일이 없습니다');
+  const images = [new File(['png'], filename, { type: 'image/png' }), new File(['png'], detailName, { type: 'image/png' })];
+  fireEvent.change(screen.getByLabelText('이미지 파일 선택'), { target: { files: images } });
+  expect(await screen.findByAltText('1번 문제 이미지')).toHaveAttribute('src', `blob:${filename}`);
+  expect(screen.getByAltText('1번 상세 해설 이미지')).toHaveAttribute('src', `blob:${detailName}`);
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(card().getByLabelText('문제 이미지')).toHaveValue(filename);
+  expect(card().getByLabelText('상세 해설 이미지')).toHaveValue(detailName);
+  postAdminQuestionsRequest.mockResolvedValue({ code: 'SU', message: 'Success.' });
+  fireEvent.click(screen.getByRole('button', { name: '문제 등록' }));
+  await screen.findByRole('status');
+  const [body, files] = postAdminQuestionsRequest.mock.calls[0];
+  expect(body.questions[0].imageFileName).toBe(files[0].name);
+  expect(body.questions[0].detailedExplanation.imageFileName).toBe(files[1].name);
+});
+
+
+test('images selected before JSON bind correctly and deleting a bound image clears both references', async () => {
+  await open();
+  const filename = '그림.png'.normalize('NFD');
+  fireEvent.change(screen.getByLabelText('이미지 파일 선택'), { target: { files: [new File(['png'], filename, { type: 'image/png' })] } });
+  await selectJson([{ ...question, imageFileName: '그림.png', detailedExplanation: { content: '해설', imageFileName: '그림.png' } }]);
+  expect(screen.getByAltText('1번 문제 이미지')).toHaveAttribute('src', `blob:${filename}`);
+  expect(screen.getByAltText('1번 상세 해설 이미지')).toHaveAttribute('src', `blob:${filename}`);
+  fireEvent.click(screen.getByRole('button', { name: `${filename} 제거` }));
+  expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('1번 문제'));
+  expect(card().getByLabelText('문제 이미지')).toHaveValue('');
+  expect(card().getByLabelText('상세 해설 이미지')).toHaveValue('');
+  expect(URL.revokeObjectURL).toHaveBeenCalledWith(`blob:${filename}`);
 });

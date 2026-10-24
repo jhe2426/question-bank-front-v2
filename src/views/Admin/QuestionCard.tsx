@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { renderContentWithMath } from '../Test/components/TestUi';
-import { OPTION_FIELDS, QuestionDraft, SelectedImage } from './question-draft';
+import { findSelectedImage, OPTION_FIELDS, QuestionDraft, SelectedImage } from './question-draft';
 
 interface ImageFieldProps {
     label: string;
@@ -12,15 +12,16 @@ interface ImageFieldProps {
 
 // component: 업로드 파일명 선택 및 누락된 참조 안내 //
 function ImageField({ label, fieldId, filename, images, onChange }: ImageFieldProps) {
-    const missing = !!filename && !images.some(image => image.file.name === filename);
+    const selectedImage = findSelectedImage(filename, images);
+    const missing = !!filename && !selectedImage;
     return <label className='qb-editor-field' htmlFor={fieldId}>
         <span>{label}</span>
-        <select id={fieldId} value={filename} onChange={event => onChange(event.target.value)}>
+        <select id={fieldId} value={selectedImage?.file.name ?? filename} onChange={event => onChange(event.target.value)}>
             <option value=''>이미지 없음</option>
             {missing && <option value={filename}>{filename} (파일 누락)</option>}
             {images.map(image => <option key={image.file.name} value={image.file.name}>{image.file.name}</option>)}
         </select>
-        {missing && <small className='qb-editor-missing'>누락된 파일: {filename}</small>}
+        {missing && <small className='qb-editor-missing'>연결할 파일을 찾지 못했습니다: {filename}. 이미지 파일을 추가하거나 위 목록에서 선택해주세요.</small>}
     </label>;
 }
 
@@ -39,12 +40,12 @@ export default function QuestionCard({ question, number, images, disabled, error
     const isExpanded = expanded || errors.length > 0;
     const update = (patch: Partial<QuestionDraft>) => onChange(question.key, patch);
     const detail = question.detailedExplanation;
-    const questionImage = images.find(image => image.file.name === question.imageFileName);
-    const detailImage = images.find(image => image.file.name === detail?.imageFileName);
+    const questionImage = findSelectedImage(question.imageFileName, images);
+    const detailImage = findSelectedImage(detail?.imageFileName, images);
     const fieldId = (name: string) => `${question.key}-${name}`;
     const changeType = (questionType: string) => update({
         questionType,
-        ...(questionType === '기출문제' ? { tags: '' } : { pastExamId: '', questionOrder: '' })
+        ...(questionType === '기출문제' ? { tags: '' } : { pastExamRound: null, questionOrder: '' })
     });
 
     return <article className={`qb-admin-card qb-editor-question${errors.length ? ' has-errors' : ''}`} id={question.key}>
@@ -75,7 +76,7 @@ export default function QuestionCard({ question, number, images, disabled, error
                             : detail.imageFileName && <p className='qb-editor-missing'>누락된 상세 해설 이미지: {detail.imageFileName}</p>}
                     </div>}
                     <p className='qb-editor-metadata'>{question.questionType === '모의고사' ? `기출 회차 태그: ${question.tags || '없음'}`
-                        : `기출 회차 ID: ${question.pastExamId || '-'} · 문항 순서: ${question.questionOrder || '-'}`}</p>
+                        : `기출 회차: ${question.pastExamRound === null ? '-' : `${question.pastExamRound}회`} · 문항 순서: ${question.questionOrder || '-'}`}</p>
                 </section>
                 <fieldset className='qb-editor-fields' disabled={disabled}>
                     <legend className='qb-admin-sr-only'>{number}번 문제 수정</legend>
@@ -102,7 +103,7 @@ export default function QuestionCard({ question, number, images, disabled, error
                     </>}
                     {(question.questionType === '모의고사' || question.tags) && <label className='qb-editor-field' htmlFor={fieldId('tags')}><span>모의고사 기출 회차 태그</span><input id={fieldId('tags')} value={question.tags} onChange={event => update({ tags: event.target.value })} placeholder='35,36,37' /></label>}
                     {question.questionType === '기출문제' && <div className='qb-editor-metadata-grid'>
-                        <label className='qb-editor-field' htmlFor={fieldId('past')}><span>기출 회차 ID</span><input id={fieldId('past')} inputMode='numeric' value={question.pastExamId} onChange={event => update({ pastExamId: event.target.value })} /></label>
+                        <label className='qb-editor-field' htmlFor={fieldId('past')}><span>기출 회차</span><input id={fieldId('past')} aria-label='기출 회차' type='number' min={1} step={1} inputMode='numeric' value={question.pastExamRound ?? ''} placeholder='예: 39' onChange={event => update({ pastExamRound: Number.isFinite(event.target.valueAsNumber) ? event.target.valueAsNumber : null })} />{question.pastExamRound === null && <small className='qb-editor-missing'>기출 회차(pastExamRound)를 입력해주세요. DB 내부 ID는 회차로 사용하지 않습니다.</small>}</label>
                         <label className='qb-editor-field' htmlFor={fieldId('order')}><span>기출문제 순서</span><input id={fieldId('order')} inputMode='numeric' value={question.questionOrder} onChange={event => update({ questionOrder: event.target.value })} /></label>
                     </div>}
                 </fieldset>
