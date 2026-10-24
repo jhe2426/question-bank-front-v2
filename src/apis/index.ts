@@ -1,3 +1,5 @@
+import { parseAdminQuestionDetail, PutAdminQuestionRequestDto } from './dto/response/admin/question-detail';
+import { QuestionListFilter, parseAdminQuestionPage } from './dto/response/admin/question-list';
 import { PostQuestionsRequestDto } from './dto/request/admin';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PostExamResponseDto, ResponseDto } from './dto/response';
@@ -385,4 +387,74 @@ export const getAdminCheckRequest = async (accessToken: string): Promise<number 
         // 프록시의 HTML 200 등은 관리자 확인 성공으로 처리하지 않습니다.
         .then(response => response.status === 200 && response.data?.code === 'SU' ? 200 : null)
         .catch((error: AxiosError<ResponseDto>) => error.response?.status ?? null);
+};
+
+// function: 관리자 문제 목록 조회 — 기존 인증/재발급 인스턴스 재사용 //
+export const getAdminQuestionsRequest = async (filter: QuestionListFilter, page: number, accessToken: string) => {
+    let data: unknown;
+    try {
+        const response = await api.get(`${API_DOMAIN}/api/admin/questions`, {
+            ...bearerAuthorization(accessToken), params: { ...filter, page, size: 20 }
+        });
+        data = response.data;
+    } catch (error) {
+        const response = (error as AxiosError<{ message?: string; detail?: string }>).response;
+        throw new Error(response?.data?.message || response?.data?.detail || (response?.status === 403
+            ? '관리자 권한이 필요합니다.' : '문제 목록을 불러오지 못했습니다. 연결 상태를 확인하고 다시 조회해주세요.'));
+    }
+    return parseAdminQuestionPage(data);
+};
+
+// function: 단일 관리자 문제 상세/수정/삭제 — 기존 Axios 인증·재발급 경로 재사용 //
+const adminQuestionUrl = (questionId: number) => `${POST_ADMIN_QUESTIONS_URL}/${questionId}`;
+
+const adminQuestionError = (error: unknown, action: string): Error => {
+    const response = (error as AxiosError<{ message?: string; detail?: string }>).response;
+    const status = response?.status;
+    const fallback = status === 400 ? '입력값을 확인해주세요.'
+        : status === 403 ? '관리자 권한이 필요합니다.'
+        : status === 404 ? '문제를 찾을 수 없습니다.'
+        : status === 409 ? '학습 기록 등에서 사용 중인 문제이거나 변경이 충돌하여 처리할 수 없습니다.'
+        : status === 500 ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        : `${action}에 실패했습니다. 연결 상태를 확인해주세요.`;
+    return new Error(response?.data?.message || response?.data?.detail || fallback);
+};
+
+export const getAdminQuestionDetailRequest = async (
+    questionId: number,
+    pastExamRound: number | null,
+    accessToken: string
+) => {
+    try {
+        const response = await api.get(adminQuestionUrl(questionId), {
+            ...bearerAuthorization(accessToken),
+            ...(pastExamRound === null ? {} : { params: { pastExamRound } })
+        });
+        return parseAdminQuestionDetail(response.data);
+    } catch (error) {
+        if (error instanceof Error && !axios.isAxiosError(error)) throw error;
+        throw adminQuestionError(error, '문제 상세 조회');
+    }
+};
+
+export const putAdminQuestionRequest = async (questionId: number, question: PutAdminQuestionRequestDto,
+    questionImage: File | null, explanationImage: File | null, accessToken: string): Promise<ResponseDto> => {
+    const data = new FormData();
+    data.append('question', new Blob([JSON.stringify(question)], { type: 'application/json' }));
+    if (questionImage) data.append('questionImage', questionImage);
+    if (explanationImage) data.append('explanationImage', explanationImage);
+    try {
+        // Content-Type을 지정하지 않아 브라우저가 multipart boundary를 설정합니다.
+        const response = await api.put<ResponseDto>(adminQuestionUrl(questionId), data, bearerAuthorization(accessToken));
+        if (response.data?.code !== 'SU') throw new Error(response.data?.message || '문제 수정 결과를 확인하지 못했습니다.');
+        return response.data;
+    } catch (error) { throw axios.isAxiosError(error) ? adminQuestionError(error, '문제 수정') : error; }
+};
+
+export const deleteAdminQuestionRequest = async (questionId: number, accessToken: string): Promise<ResponseDto> => {
+    try {
+        const response = await api.delete<ResponseDto>(adminQuestionUrl(questionId), bearerAuthorization(accessToken));
+        if (response.data?.code !== 'SU') throw new Error(response.data?.message || '문제 삭제 결과를 확인하지 못했습니다.');
+        return response.data;
+    } catch (error) { throw axios.isAxiosError(error) ? adminQuestionError(error, '문제 삭제') : error; }
 };

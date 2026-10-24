@@ -4,6 +4,7 @@ import { approvalCodeRequest, postAdminQuestionsRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
 import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH } from 'src/constants';
 import QuestionCard from './QuestionCard';
+import QuestionList from './QuestionList';
 import { buildQuestionsRequest, connectQuestionImages, IMAGE_ACCEPT, parseQuestionFile, QuestionDraft, SelectedImage, validateImageFiles, validateQuestions } from './question-draft';
 import 'katex/dist/katex.min.css';
 import './style.css';
@@ -243,10 +244,10 @@ export default function AdminPage() {
                 {navLink(ADMIN_APPROVALS_ABSOLUTE_PATH, '승인번호 관리', true)}
             </nav>
         </aside>
-        <main className='qb-admin-main'>
+        <main className={`qb-admin-main ${isListPage ? 'qb-admin-list-main' : ''}`}>
             <div className='qb-admin-breadcrumb'><span>{isApprovalPage ? '관리' : '문제 관리'}</span><AdminIcon name='chevron' size={15} aria-hidden='true' /><strong>{title}</strong></div>
-            <header className='qb-admin-heading'><h1>{title}</h1><p>{isApprovalPage ? '수신 전화번호를 입력하고 승인번호를 발송하세요.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
-            {isApprovalPage ? <ApprovalPanel /> : <form onSubmit={event => event.preventDefault()} aria-busy={isSubmitting}>
+            <header className='qb-admin-heading'><h1>{title}</h1><p>{isApprovalPage ? '수신 전화번호를 입력하고 승인번호를 발송하세요.' : isListPage ? '회차 또는 난이도를 선택하여 등록된 문제를 조회하세요.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
+            {isApprovalPage ? <ApprovalPanel /> : isListPage ? <QuestionList /> : <form onSubmit={event => event.preventDefault()} aria-busy={isSubmitting}>
                 {!isListPage && <section className='qb-admin-card qb-admin-upload-card'>
                     <h2>문제 데이터 업로드</h2>
                     <p className='qb-admin-caption'>파일 선택만으로는 저장되지 않습니다. 이미지가 없는 문제도 등록할 수 있습니다.</p>

@@ -1123,3 +1123,79 @@
   .qb-editor-submit-actions { width: 100%; }
   .qb-editor-submit-panel .qb-admin-submit { flex: 1; }
 }
+
+/* 등록된 문제 목록 전용: 업로드 및 사용자 시험 화면에는 적용하지 않습니다. */
+.qb-admin-main.qb-admin-list-main { width: 100%; max-width: 1200px; margin-inline: auto; }
+.qb-question-list { display: grid; gap: 20px; min-width: 0; }
+.qb-question-list .qb-admin-card { margin: 0; padding: 24px; }
+.qb-list-filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 24px; margin-top: 22px; }
+.qb-list-filters fieldset { border: 0; padding: 0; margin: 0; display: flex; align-items: center; gap: 18px; min-height: 44px; }
+.qb-list-filters legend { margin-bottom: 10px; font-size: 14px; font-weight: 600; color: var(--qb-muted); }
+.qb-list-filters fieldset label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; white-space: nowrap; }
+.qb-list-filters input[type=radio] { margin: 0; width: 18px; height: 18px; accent-color: var(--qb-blue); }
+.qb-list-filters > label { display: flex; flex-direction: column; gap: 10px; font-size: 14px; font-weight: 600; color: var(--qb-muted); }
+.qb-list-filters select { height: 44px; width: 210px; max-width: 100%; border: 1px solid #dce2eb; border-radius: 8px; padding: 8px 12px; color: var(--qb-ink); background: white; font: inherit; }
+.qb-list-filters .qb-admin-submit { width: auto; min-height: 44px; margin: 0; padding: 10px 28px; }
+.qb-question-list select:focus-visible, .qb-question-list button:focus-visible, .qb-question-list input:focus-visible { outline: 2px solid var(--qb-blue); outline-offset: 3px; }
+.qb-list-results-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.qb-list-results-heading .qb-admin-caption { margin: 8px 0 0; }
+.qb-list-page-size { color: var(--qb-muted); font-size: 13px; white-space: nowrap; }
+.qb-question-list .qb-admin-table { table-layout: fixed; min-width: 650px; }
+.qb-question-list .qb-admin-table th { width: 84px; }
+.qb-question-list .qb-admin-table th.qb-list-text-column { width: auto; }
+.qb-question-list .qb-admin-table th, .qb-question-list .qb-admin-table td { padding: 16px 12px; vertical-align: middle; }
+.qb-list-question-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }
+.qb-list-image-badge { display: inline-flex; gap: 4px; align-items: center; background: #edf4ff; color: #2865d7; padding: 4px 6px; border-radius: 6px; font-size: 12px; white-space: nowrap; }
+.qb-list-no-image { color: #8b97a9; font-size: 13px; }
+.qb-question-list .qb-admin-empty { padding: 48px 16px; }
+.qb-list-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; margin-top: 24px; font-size: 13px; color: var(--qb-muted); }
+.qb-question-list button:disabled { cursor: not-allowed; opacity: .55; }
+.qb-question-list .qb-list-edit-note { margin: 20px 0 0; font-size: 12px; color: #8b97a9; }
+.qb-list-round-error { margin-top: 16px; color: #b42318; font-size: 14px; }
+@media (max-width: 900px) {
+  .qb-list-filters { gap: 16px; }
+  .qb-list-filters fieldset { flex-basis: 100%; }
+}
+@media (max-width: 600px) {
+  .qb-question-list { gap: 16px; }
+  .qb-question-list .qb-admin-card { padding: 18px 16px; }
+  .qb-list-filters > label { flex: 1; min-width: 0; }
+  .qb-list-filters select { width: 100%; }
+  .qb-list-filters .qb-admin-submit { padding-inline: 20px; }
+  .qb-list-results-heading { align-items: flex-start; }
+  .qb-list-pagination { gap: 10px; }
+}
+
+/* 관리자 단일 문제 편집과 삭제 확인 */
+.qb-list-row-actions { display: flex; gap: 6px; white-space: nowrap; }
+.qb-question-list .qb-admin-table th:last-child { width: 150px; }
+.qb-admin-delete { border: 1px solid #f2cccc; border-radius: 8px; background: #fff; color: #b42318; padding: 8px 12px; }
+.qb-admin-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: flex; justify-content: center; align-items: center; padding: 20px; background: rgba(16, 24, 40, .45); }
+.qb-admin-editor-modal { position: relative; width: min(880px, 100%); max-height: min(90vh, 100%); overflow-y: auto; padding: 24px; }
+.qb-admin-editor-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.qb-admin-detail-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 18px; }
+.qb-admin-detail-form label { display: grid; gap: 8px; font-size: 14px; font-weight: 600; color: var(--qb-muted); }
+.qb-admin-detail-form input:not([type=file]), .qb-admin-detail-form select, .qb-admin-detail-form textarea { width: 100%; border: 1px solid #dce2eb; border-radius: 8px; padding: 10px 12px; color: var(--qb-ink); background: #fff; font: inherit; }
+.qb-admin-detail-form textarea { resize: vertical; }
+.qb-admin-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.qb-admin-past-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.qb-admin-detail-options { grid-template-columns: minmax(0, 1fr); }
+.qb-admin-image-control { border: 1px solid #e6ebf2; border-radius: 10px; padding: 16px; display: grid; gap: 12px; justify-items: start; }
+.qb-admin-image-control img { max-width: min(100%, 420px); max-height: 250px; object-fit: contain; }
+.qb-admin-editor-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.qb-admin-editor-actions .qb-admin-delete,
+.qb-admin-editor-actions .qb-admin-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 20px;
+  border-radius: 8px;
+  line-height: 1;
+}
+.qb-admin-confirm-overlay { position: absolute; z-index: 2; inset: 0; background: rgba(16, 24, 40, .45); display: grid; place-items: center; padding: 18px; }
+.qb-admin-confirm { width: min(420px, 100%); padding: 24px; }
+.qb-admin-confirm div { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+@media (max-width: 600px) { .qb-admin-detail-grid, .qb-admin-detail-options { grid-template-columns: 1fr; } .qb-admin-editor-modal { padding: 16px; } }

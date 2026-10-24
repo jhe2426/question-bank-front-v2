@@ -11,7 +11,7 @@ const { postAdminQuestionsRequest, getAdminCheckRequest } = require('../../apis'
 
 jest.mock('../../stores', () => ({ useAuthStore: jest.fn() }));
 jest.mock('react-cookie', () => ({ useCookies: () => [{}] }));
-jest.mock('../../apis', () => ({ logoutRequest: jest.fn(), refreshAccessTokenRequest: jest.fn(), postAdminQuestionsRequest: jest.fn(), getAdminCheckRequest: jest.fn() }));
+jest.mock('../../apis', () => ({ getPastExamRoundListRequest: jest.fn().mockResolvedValue({ code: 'SU', pastExamRounds: [{ pastExamId: 7, pastExamRound: 39 }] }), logoutRequest: jest.fn(), refreshAccessTokenRequest: jest.fn(), postAdminQuestionsRequest: jest.fn(), getAdminCheckRequest: jest.fn() }));
 jest.mock('../Auth', () => () => <div>로그인 화면</div>);
 jest.mock('../Main', () => () => <div>메인 화면</div>);
 jest.mock('../MyPage', () => () => <div>마이페이지 화면</div>);
@@ -237,4 +237,16 @@ test('images selected before JSON bind correctly and deleting a bound image clea
   expect(card().getByLabelText('문제 이미지')).toHaveValue('');
   expect(card().getByLabelText('상세 해설 이미지')).toHaveValue('');
   expect(URL.revokeObjectURL).toHaveBeenCalledWith(`blob:${filename}`);
+});
+
+test('question list menu opens the server query screen and preserves the upload draft', async () => {
+  await open();
+  await selectJson([question]);
+  fireEvent.click(screen.getByRole('link', { name: '문제 목록' }));
+  await screen.findByRole('heading', { name: '등록된 문제 조회' });
+  expect(screen.getByLabelText('기출 회차')).toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: '문제 미리보기 및 수정' })).not.toBeInTheDocument();
+  expect(postAdminQuestionsRequest).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('link', { name: '문제 업로드' }));
+  expect(await screen.findByRole('heading', { name: '1번 문제' })).toBeInTheDocument();
 });
