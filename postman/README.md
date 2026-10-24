@@ -33,3 +33,11 @@ UI 및 검증 로직 테스트:
 ```sh
 CI=true npm test -- --watchAll=false --runInBand --testPathPattern=views/Admin
 ```
+
+## 킬러문제 새 출제 회귀 검증
+
+```sh
+ADMIN_HTTP_TEST_URL=http://127.0.0.1:4910/backend CI=true npm test -- --watchAll=false --runInBand --testPathPattern=killer-http
+```
+
+실제 Main/Exam 컴포넌트와 Axios를 실행해 저장된 문제가 있어도 시작 버튼을 누를 때마다 `GET /api/v1/killer-exam`을 호출하는지 확인합니다. 두 번 시작, 오류 후 재시도, 잘못된 저장 데이터의 영향을 검증합니다. 테스트 서버는 요청마다 다른 고정 예시 문제를 반환하므로 이 테스트는 재요청을 검증하며 실제 서버의 무작위 추출 품질을 검증하지 않습니다. 메인 화면의 단원/기출 회차 목록만 테스트 안에서 대체합니다.

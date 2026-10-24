@@ -2,6 +2,7 @@
 // Synthetic tokens select test outcomes; this server never persists real questions.
 const http = require('http');
 const requests = [];
+let killerRequestCount = 0;
 let rejectRefreshedCheck = false;
 function readBody(req) {
   if (req.body !== undefined) return Promise.resolve(Buffer.isBuffer(req.body) ? req.body.toString('utf8') : typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
@@ -22,6 +23,16 @@ http.createServer(async (req, res) => {
   if (req.method === 'GET' && req.url === '/__test/requests') return send(200, requests);
   const raw = await readBody(req);
   requests.push({ method: req.method, path: req.url, headers: req.headers, raw });
+  // KillerExamController/GetKillerExamQuestionListResponseDto contract.
+  // Deterministic changing fixtures verify refetching, not server randomness.
+  if (req.method === 'GET' && req.url === '/api/v1/killer-exam') {
+    if (req.headers.authorization === 'Bearer test-server-error') return send(500, { code: 'ISE', message: 'Server error.' });
+    const questionId = 9000 + ++killerRequestCount;
+    return send(200, { code: 'SU', message: 'Success.', sessionId: 3, questions: [{
+      questionId, questionOrder: 1, questionText: `새 출제 문제 ${questionId}`,
+      option1: '첫 번째 보기', option2: '두 번째 보기', option3: '세 번째 보기', option4: '네 번째 보기', imageUrl: null, shortExplanation: null
+    }] });
+  }
   if (req.method === 'POST' && req.url === '/api/v1/auth/refresh') {
     if (req.headers['x-csrf-token'] !== 'test-csrf') return send(403, { code: 'VF', message: 'Validation failed.' });
     return send(200, { code: 'SU', message: 'Success.', accessToken: 'test-refreshed' });

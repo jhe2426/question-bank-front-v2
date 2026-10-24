@@ -622,7 +622,8 @@ export default function Exam() {
 
     // effect: pathname가 변경될 시 실행할 함수 //
     useEffect(() => {
-        if (examInfo == null) return;
+        // 킬러문제는 진입할 때마다 서버에서 새로 출제하므로 저장 데이터를 읽지 않습니다.
+        if (examInfo == null || isKillerExam) return;
 
         const savedData = loadExamFromStorage();
         if (!savedData) return;
@@ -649,7 +650,7 @@ export default function Exam() {
         setQuestionError('');
         setCurrentPage(0);
 
-        if (!isPastExam) {
+        if (!isPastExam && !isKillerExam) {
             const savedData = loadExamFromStorage();
 
             if (savedData) {
