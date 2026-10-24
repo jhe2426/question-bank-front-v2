@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor, within, act } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import QuestionList from './QuestionList';
 import { deleteAdminQuestionRequest, getAdminQuestionDetailRequest, getAdminQuestionsRequest, getPastExamRoundListRequest, putAdminQuestionRequest } from 'src/apis';
@@ -166,6 +166,19 @@ test('past editor hides difficulty and short explanation while preserving their 
         difficulty: null,
         shortExplanation: '간단 해설'
     }));
+});
+
+test('allows a detailed explanation longer than 255 characters when saving', async () => {
+    const longExplanation = '상세 해설'.repeat(100);
+    detailRequest.mockResolvedValue(detail);
+    updateRequest.mockResolvedValue({ code: 'SU' });
+    await openRow();
+    fireEvent.click(screen.getByRole('button', { name: '수정' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('상세 해설'), { target: { value: longExplanation } });
+    fireEvent.click(within(dialog).getByRole('button', { name: '변경 사항 저장' }));
+    await waitFor(() => expect(updateRequest).toHaveBeenCalledTimes(1));
+    expect(updateRequest.mock.calls[0][1].detailedExplanation).toEqual({ content: longExplanation });
 });
 
 test('deletion requires confirmation, refreshes the page, and reports a 409 failure', async () => {

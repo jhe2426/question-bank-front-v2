@@ -18,6 +18,7 @@ export const ADMIN_PATH = 'admin';
 export const ADMIN_UPLOAD_PATH = `${ADMIN_PATH}/upload`;
 export const ADMIN_QUESTIONS_PATH = `${ADMIN_PATH}/questions`;
 export const ADMIN_APPROVALS_PATH = `${ADMIN_PATH}/approvals`;
+export const ADMIN_MEMBERS_PATH = `${ADMIN_PATH}/members`;
 export const OTHERS_PATH = '*';
 
 // variable: 절대 path 상수 //
@@ -40,3 +41,4 @@ export const ADMIN_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_PATH}`;
 export const ADMIN_UPLOAD_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_UPLOAD_PATH}`;
 export const ADMIN_QUESTIONS_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_QUESTIONS_PATH}`;
 export const ADMIN_APPROVALS_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_APPROVALS_PATH}`;
+export const ADMIN_MEMBERS_ABSOLUTE_PATH = `${ROOT_PATH}${ADMIN_MEMBERS_PATH}`;

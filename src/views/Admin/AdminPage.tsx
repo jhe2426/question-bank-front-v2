@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { approvalCodeRequest, postAdminQuestionsRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
-import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH } from 'src/constants';
+import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH, ADMIN_MEMBERS_ABSOLUTE_PATH } from 'src/constants';
 import QuestionCard from './QuestionCard';
 import QuestionList from './QuestionList';
+import MemberManagement from './MemberManagement';
 import { buildQuestionsRequest, connectQuestionImages, IMAGE_ACCEPT, parseQuestionFile, QuestionDraft, SelectedImage, validateImageFiles, validateQuestions } from './question-draft';
 import 'katex/dist/katex.min.css';
 import './style.css';
@@ -18,6 +19,7 @@ function AdminIcon({ name, size = 20, strokeWidth = 1.8, ...props }: React.SVGPr
     chevron: <path d="m9 5 7 7-7 7" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
     settings: <><path d="M4 7h16M4 17h16" /><circle cx="8" cy="7" r="3" fill="white" /><circle cx="16" cy="17" r="3" fill="white" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
     notice: <><circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 3h.01" /></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>{paths[name]}</svg>;
@@ -98,7 +100,9 @@ export default function AdminPage() {
 
     const isApprovalPage = pathname === ADMIN_APPROVALS_ABSOLUTE_PATH;
     const isListPage = pathname === ADMIN_QUESTIONS_ABSOLUTE_PATH;
-    const title = isApprovalPage ? '승인번호 관리' : isListPage ? '문제 목록' : '문제 업로드';
+    const isMemberPage = pathname === ADMIN_MEMBERS_ABSOLUTE_PATH;
+    const isProblemPage = !isApprovalPage && !isMemberPage;
+    const title = isApprovalPage ? '승인번호 관리' : isMemberPage ? '회원 목록' : isListPage ? '문제 목록' : '문제 업로드';
     const locked = isSubmitting || isRegistered || isParsing;
     const issues = hasValidated ? validateQuestions(questions, images) : [];
 
@@ -228,26 +232,27 @@ export default function AdminPage() {
         }
     };
 
-    const navLink = (to: string, text: string, parent = false) => <NavLink to={to}
+    const navLink = (to: string, text: string, parent = false, icon = 'settings') => <NavLink to={to}
         className={({ isActive }) => `${parent ? 'qb-admin-nav-parent qb-admin-approval-link' : 'qb-admin-nav-child'} ${isActive ? 'is-active' : ''}`}
         aria-disabled={isSubmitting} onClick={event => { if (requestRef.current) event.preventDefault(); }}>
-        {parent && <AdminIcon name='settings' aria-hidden='true' />}{text}
+        {parent && <AdminIcon name={icon} aria-hidden='true' />}{text}
     </NavLink>;
 
     return <div className='qb-admin-page'>
         <aside className='qb-admin-sidebar' aria-label='관리자 메뉴'>
             <div className='qb-admin-brand'><strong>Question Bank</strong><span>관리자 페이지</span></div>
             <nav className='qb-admin-navigation'>
-                <div className={`qb-admin-nav-parent ${!isApprovalPage ? 'is-active' : ''}`}><AdminIcon name='file' aria-hidden='true' /><span>문제 관리</span></div>
+                <div className={`qb-admin-nav-parent ${isProblemPage ? 'is-active' : ''}`}><AdminIcon name='file' aria-hidden='true' /><span>문제 관리</span></div>
                 {navLink(ADMIN_UPLOAD_ABSOLUTE_PATH, '문제 업로드')}
                 {navLink(ADMIN_QUESTIONS_ABSOLUTE_PATH, '문제 목록')}
                 {navLink(ADMIN_APPROVALS_ABSOLUTE_PATH, '승인번호 관리', true)}
+                {navLink(ADMIN_MEMBERS_ABSOLUTE_PATH, '회원 관리', true, 'users')}
             </nav>
         </aside>
-        <main className={`qb-admin-main ${isListPage ? 'qb-admin-list-main' : ''}`}>
-            <div className='qb-admin-breadcrumb'><span>{isApprovalPage ? '관리' : '문제 관리'}</span><AdminIcon name='chevron' size={15} aria-hidden='true' /><strong>{title}</strong></div>
-            <header className='qb-admin-heading'><h1>{title}</h1><p>{isApprovalPage ? '수신 전화번호를 입력하고 승인번호를 발송하세요.' : isListPage ? '회차 또는 난이도를 선택하여 등록된 문제를 조회하세요.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
-            {isApprovalPage ? <ApprovalPanel /> : isListPage ? <QuestionList /> : <form onSubmit={event => event.preventDefault()} aria-busy={isSubmitting}>
+        <main className={`qb-admin-main ${isListPage ? 'qb-admin-list-main' : ''} ${isMemberPage ? 'qb-admin-member-main' : ''}`}>
+            <div className='qb-admin-breadcrumb'><span>{isMemberPage ? '회원 관리' : isApprovalPage ? '관리' : '문제 관리'}</span><AdminIcon name='chevron' size={15} aria-hidden='true' /><strong>{title}</strong></div>
+            <header className='qb-admin-heading'><h1>{title}</h1><p>{isMemberPage ? '회원 목록과 회원별 학습 현황을 확인하세요.' : isApprovalPage ? '수신 전화번호를 입력하고 승인번호를 발송하세요.' : isListPage ? '회차 또는 난이도를 선택하여 등록된 문제를 조회하세요.' : '파일을 선택한 후 문제를 확인·수정하고, 문제 등록 버튼을 눌러 저장하세요.'}</p></header>
+            {isMemberPage ? <MemberManagement /> : isApprovalPage ? <ApprovalPanel /> : isListPage ? <QuestionList /> : <form onSubmit={event => event.preventDefault()} aria-busy={isSubmitting}>
                 {!isListPage && <section className='qb-admin-card qb-admin-upload-card'>
                     <h2>문제 데이터 업로드</h2>
                     <p className='qb-admin-caption'>파일 선택만으로는 저장되지 않습니다. 이미지가 없는 문제도 등록할 수 있습니다.</p>

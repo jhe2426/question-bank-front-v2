@@ -250,3 +250,11 @@ test('question list menu opens the server query screen and preserves the upload 
   fireEvent.click(screen.getByRole('link', { name: '문제 업로드' }));
   expect(await screen.findByRole('heading', { name: '1번 문제' })).toBeInTheDocument();
 });
+
+test('member management menu opens inside the protected admin layout', async () => {
+  render(<MemoryRouter initialEntries={['/admin/members']}><App /></MemoryRouter>);
+  expect(await screen.findByRole('heading', { name: '회원 목록', level: 1 })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: '회원 관리' })).toHaveClass('is-active');
+  expect(await screen.findByText('테스트 회원 A')).toBeInTheDocument();
+  expect(screen.getByText(/실제 회원 기록이 아닙니다/)).toBeInTheDocument();
+});

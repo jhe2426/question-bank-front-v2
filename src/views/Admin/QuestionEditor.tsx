@@ -81,7 +81,7 @@ export default function QuestionEditor({ questionId, pastExamRound, onClose, onS
         if (!positive(draft.sectionId)) throw new Error('섹션 ID는 1 이상의 정수여야 합니다.');
         if (!/^[1-4]$/.test(draft.answer)) throw new Error('정답을 1~4번 중 선택해주세요.');
         if (detail.questionType === '모의고사' && !['상', '중', '하'].includes(draft.difficulty)) throw new Error('난이도를 선택해주세요.');
-        if (draft.shortExplanation.length > 255 || draft.detailContent.length > 255) throw new Error('해설은 255자 이하여야 합니다.');
+        if (draft.shortExplanation.length > 255) throw new Error('간단 해설은 255자 이하여야 합니다.');
         const tags = draft.tags.trim() ? draft.tags.split(',').map(value => value.trim()) : [];
         if (detail.questionType === '기출문제' && (!positive(draft.pastExamRound) || !positive(draft.questionOrder))) {
             throw new Error('기출 회차와 문제 순서를 1 이상의 정수로 입력해주세요.');

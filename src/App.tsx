@@ -11,7 +11,7 @@ import Grade from './views/Test/Grade';
 import MyPage from './views/MyPage';
 import Admin from './views/Admin';
 import AdminRoute from './components/AdminRoute';
-import { ADMIN_PATH, ADMIN_UPLOAD_PATH, ADMIN_QUESTIONS_PATH, ADMIN_APPROVALS_PATH, ADMIN_UPLOAD_ABSOLUTE_PATH } from './constants';
+import { ADMIN_PATH, ADMIN_UPLOAD_PATH, ADMIN_QUESTIONS_PATH, ADMIN_APPROVALS_PATH, ADMIN_MEMBERS_PATH, ADMIN_UPLOAD_ABSOLUTE_PATH } from './constants';
 
 function App() {
   return (
@@ -25,6 +25,7 @@ function App() {
           <Route path={ADMIN_UPLOAD_PATH} element={<Admin />} />
           <Route path={ADMIN_QUESTIONS_PATH} element={<Admin />} />
           <Route path={ADMIN_APPROVALS_PATH} element={<Admin />} />
+          <Route path={ADMIN_MEMBERS_PATH} element={<Admin />} />
         </Route>
       </Route>
 
