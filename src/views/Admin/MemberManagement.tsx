@@ -18,11 +18,20 @@ function MemberIcon({ name, size = 22 }: { name: 'user' | 'clock' | 'document' |
 
 export function formatLearningTime(totalSeconds: number | null) {
     if (totalSeconds === null) return '기록 없음';
-    const safeMinutes = Math.max(0, Math.floor(totalSeconds / 60));
-    const hours = Math.floor(safeMinutes / 60);
-    const minutes = safeMinutes % 60;
-    if (!hours) return `${minutes}분`;
-    return minutes ? `${hours}시간 ${minutes}분` : `${hours}시간`;
+    const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+    const hours = Math.floor(safeSeconds / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+    const seconds = safeSeconds % 60;
+    const parts = [
+        hours ? `${hours}시간` : '',
+        minutes ? `${minutes}분` : '',
+        seconds ? `${seconds}초` : ''
+    ].filter(Boolean);
+    return parts.length ? parts.join(' ') : '0초';
+}
+
+export function formatAccuracyRate(accuracyRate: number) {
+    return `${accuracyRate.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}%`;
 }
 
 interface MemberDetailModalProps {
@@ -36,6 +45,9 @@ interface MemberDetailModalProps {
 
 function MemberDetailModal({ member, detail, status, error, onRetry, onClose }: MemberDetailModalProps) {
     const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const maxSectionSolvedCount = detail?.sectionSummaries.reduce(
+        (maximum, section) => Math.max(maximum, section.solvedCount), 0
+    ) ?? 0;
 
     useEffect(() => {
         const previousOverflow = document.body.style.overflow;
@@ -71,18 +83,33 @@ function MemberDetailModal({ member, detail, status, error, onRetry, onClose }: 
                 <section className='qb-member-learning-summary' aria-labelledby='qb-learning-summary-title'>
                     <h3 id='qb-learning-summary-title'>학습 현황 요약</h3>
                     <div className='qb-member-summary-grid'>
-                        <article><span><MemberIcon name='clock' /></span><div><small>총 문제 풀이 시간</small><strong>{formatLearningTime(detail.totalSolveSeconds)}</strong></div></article>
-                        <article><span><MemberIcon name='document' /></span><div><small>총 풀이 문항 수</small><strong>{detail.totalSolvedCount.toLocaleString()}문제</strong></div></article>
+                        <article><span><MemberIcon name='clock' /></span><div><small>총 누적 풀이 시간</small><strong>{formatLearningTime(detail.totalSolveSeconds)}</strong></div></article>
+                        <article><span><MemberIcon name='document' /></span><div><small>총 누적 풀이 횟수</small><strong>{detail.totalSolvedCount.toLocaleString()}회</strong></div></article>
                     </div>
                 </section>
 
                 <section className='qb-member-sections' aria-labelledby='qb-member-sections-title'>
-                    <div><h3 id='qb-member-sections-title'>섹션별 학습 현황</h3><p>섹션별 풀이 문항 수와 누적 풀이 시간을 표시합니다.</p></div>
+                    <div><h3 id='qb-member-sections-title'>섹션별 학습 현황</h3><p>섹션별 누적 풀이 횟수와 정답률을 비교합니다.</p></div>
                     <div className='qb-admin-table-wrap'>
                         <table className='qb-admin-table'>
-                            <thead><tr><th>섹션명</th><th>풀이 문항 수</th><th>누적 풀이 시간</th></tr></thead>
+                            <thead><tr><th>섹션명</th><th>누적 풀이 횟수</th><th>정답률</th></tr></thead>
                             <tbody>{detail.sectionSummaries.length ? detail.sectionSummaries.map(section => <tr key={section.sectionId}>
-                                <td>{section.sectionName}</td><td>{section.solvedCount.toLocaleString()}문제</td><td>{formatLearningTime(section.totalSolveSeconds)}</td>
+                                <td>{section.sectionName}</td>
+                                <td>
+                                    <div className='qb-member-solved-count'>
+                                        <span>{section.solvedCount.toLocaleString()}회</span>
+                                        <span className='qb-member-solved-track' aria-hidden='true'>
+                                            <span style={{ width: `${maxSectionSolvedCount ? (section.solvedCount / maxSectionSolvedCount) * 100 : 0}%` }} />
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div className='qb-member-accuracy'>
+                                        <span>{formatAccuracyRate(section.accuracyRate)}</span>
+                                        <progress value={section.accuracyRate} max={100} aria-label={`${section.sectionName} 정답률`} />
+                                        <small>{section.correctCount.toLocaleString()} / {section.solvedCount.toLocaleString()} 정답</small>
+                                    </div>
+                                </td>
                             </tr>) : <tr><td colSpan={3} className='qb-admin-empty'>학습 기록이 없습니다.</td></tr>}</tbody>
                         </table>
                     </div>

@@ -273,6 +273,7 @@ test('member management menu opens inside the protected admin layout', async () 
 
 test('main page menu leaves the standalone admin layout and opens the main page', async () => {
   await open();
+  expect(screen.getByRole('complementary', { name: '관리자 메뉴' }).querySelector('nav > a')).toHaveTextContent('메인 페이지');
   fireEvent.click(screen.getByRole('link', { name: '메인 페이지' }));
   expect(await screen.findByText('메인 화면')).toBeInTheDocument();
   expect(screen.queryByRole('navigation', { name: '관리자 메뉴' })).not.toBeInTheDocument();

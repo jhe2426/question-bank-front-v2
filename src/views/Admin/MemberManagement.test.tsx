@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useAuthStore } from 'src/stores';
-import MemberManagement, { formatLearningTime } from './MemberManagement';
+import MemberManagement, { formatAccuracyRate, formatLearningTime } from './MemberManagement';
 import { AdminMemberDataSource, AdminMemberLearningDetail, AdminMemberPage } from './admin-member.types';
 
 jest.mock('./admin-member-data', () => ({
@@ -37,14 +37,14 @@ test('loads the first member page, pages on the server, and resets to page zero 
     await waitFor(() => expect(getMembers).toHaveBeenCalledWith('010-3333', 0, 'admin-token'));
 });
 
-test('requests the selected user learning summary and renders seconds and null time correctly', async () => {
+test('requests the selected user learning summary and renders cumulative time and section counts', async () => {
     const getMemberDetail = jest.fn(async () => ({
         ...users[0],
         totalSolvedCount: 120,
-        totalSolveSeconds: 12300,
+        totalSolveSeconds: 12305,
         sectionSummaries: [
-            { sectionId: 1, sectionName: '데이터의 이해', solvedCount: 35, totalSolveSeconds: 2700 },
-            { sectionId: 2, sectionName: '데이터 분석 기획', solvedCount: 40, totalSolveSeconds: null }
+            { sectionId: 1, sectionName: '데이터의 이해', solvedCount: 35, correctCount: 28, accuracyRate: 80 },
+            { sectionId: 2, sectionName: '데이터 분석 기획', solvedCount: 40, correctCount: 27, accuracyRate: 67.5 }
         ]
     }));
     const source: AdminMemberDataSource = { getMembers: async () => page(), getMemberDetail };
@@ -53,10 +53,15 @@ test('requests the selected user learning summary and renders seconds and null t
     fireEvent.click((await screen.findAllByRole('button', { name: '회원정보' }))[0]);
     const dialog = await screen.findByRole('dialog', { name: '회원 상세 정보' });
     await waitFor(() => expect(getMemberDetail).toHaveBeenCalledWith('member-a', 'admin-token'));
-    expect(await within(dialog).findByText('3시간 25분')).toBeInTheDocument();
-    expect(within(dialog).getByText('120문제')).toBeInTheDocument();
-    expect(within(dialog).getByText('45분')).toBeInTheDocument();
-    expect(within(dialog).getByText('기록 없음')).toBeInTheDocument();
+    expect(await within(dialog).findByText('3시간 25분 5초')).toBeInTheDocument();
+    expect(within(dialog).getByText('120회')).toBeInTheDocument();
+    expect(within(dialog).getByText('35회')).toBeInTheDocument();
+    expect(within(dialog).getByText('40회')).toBeInTheDocument();
+    expect(within(dialog).getByText('80%')).toBeInTheDocument();
+    expect(within(dialog).getByText('67.5%')).toBeInTheDocument();
+    expect(within(dialog).getByText('28 / 35 정답')).toBeInTheDocument();
+    expect(within(dialog).getByRole('progressbar', { name: '데이터의 이해 정답률' })).toHaveAttribute('value', '80');
+    expect(within(dialog).queryByText('누적 풀이 시간')).not.toBeInTheDocument();
 });
 
 test('shows an empty learning record and clears the previous user detail when switching members', async () => {
@@ -102,10 +107,20 @@ test('renders list and detail errors and keeps modal close behavior', async () =
     await waitFor(() => expect(openButton).toHaveFocus());
 });
 
-test('formats learning seconds in hours and minutes without inventing null values', () => {
+test('formats learning seconds without losing sub-minute values', () => {
     expect(formatLearningTime(null)).toBe('기록 없음');
-    expect(formatLearningTime(0)).toBe('0분');
-    expect(formatLearningTime(2700)).toBe('45분');
-    expect(formatLearningTime(4200)).toBe('1시간 10분');
-    expect(formatLearningTime(12300)).toBe('3시간 25분');
+    expect(formatLearningTime(0)).toBe('0초');
+    expect(formatLearningTime(2)).toBe('2초');
+    expect(formatLearningTime(11)).toBe('11초');
+    expect(formatLearningTime(59)).toBe('59초');
+    expect(formatLearningTime(60)).toBe('1분');
+    expect(formatLearningTime(75)).toBe('1분 15초');
+    expect(formatLearningTime(125)).toBe('2분 5초');
+    expect(formatLearningTime(3600)).toBe('1시간');
+    expect(formatLearningTime(3665)).toBe('1시간 1분 5초');
+});
+
+test('formats backend accuracy rates to at most one decimal place', () => {
+    expect(formatAccuracyRate(80)).toBe('80%');
+    expect(formatAccuracyRate(66.666666)).toBe('66.7%');
 });

@@ -1253,11 +1253,20 @@
 .qb-member-summary-grid strong { color: #1769ed; font-size: 24px; letter-spacing: -.03em; overflow-wrap: anywhere; }
 .qb-member-sections > div:first-child { margin-bottom: 13px; }
 .qb-member-sections p { margin: 6px 0 0; color: #68758d; font-size: 13px; }
-.qb-member-sections .qb-admin-table { min-width: 560px; border: 1px solid #e4e9f1; }
+.qb-member-sections .qb-admin-table { min-width: 680px; border: 1px solid #e4e9f1; }
 .qb-member-sections .qb-admin-table th,
 .qb-member-sections .qb-admin-table td { padding: 13px 16px; }
 .qb-member-sections .qb-admin-table th:not(:first-child),
-.qb-member-sections .qb-admin-table td:not(:first-child) { width: 150px; text-align: right; }
+.qb-member-sections .qb-admin-table td:not(:first-child) { width: 210px; text-align: right; }
+.qb-member-solved-count { display: grid; grid-template-columns: minmax(42px, auto) minmax(80px, 1fr); align-items: center; gap: 12px; font-weight: 700; }
+.qb-member-solved-track { height: 7px; overflow: hidden; border-radius: 999px; background: #e8eef7; }
+.qb-member-solved-track > span { display: block; height: 100%; border-radius: inherit; background: #2470ef; }
+.qb-member-accuracy { display: grid; grid-template-columns: minmax(44px, auto) minmax(70px, 1fr); align-items: center; gap: 3px 10px; font-weight: 700; }
+.qb-member-accuracy progress { width: 100%; height: 7px; overflow: hidden; border: 0; border-radius: 999px; appearance: none; background: #e8eef7; }
+.qb-member-accuracy progress::-webkit-progress-bar { border-radius: inherit; background: #e8eef7; }
+.qb-member-accuracy progress::-webkit-progress-value { border-radius: inherit; background: #25a56a; }
+.qb-member-accuracy progress::-moz-progress-bar { border-radius: inherit; background: #25a56a; }
+.qb-member-accuracy small { grid-column: 1 / -1; color: #68758d; font-size: 11px; font-weight: 600; }
 .qb-member-modal-footer { display: flex; justify-content: flex-end; padding: 16px 26px; border-top: 1px solid #edf0f5; background: #fff; }
 .qb-member-modal-footer button { min-width: 84px; }
 @media (max-width: 640px) {

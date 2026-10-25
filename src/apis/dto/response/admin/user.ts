@@ -7,6 +7,8 @@ const isNonNegativeInteger = (value: unknown): value is number =>
     typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 const isNullableNonNegativeInteger = (value: unknown): value is number | null =>
     value === null || isNonNegativeInteger(value);
+const isPercentage = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100;
 
 // 서버 GetAdminUserListResponseDto 응답을 검증합니다.
 export function parseAdminMemberPage(data: unknown): AdminMemberPage {
@@ -33,7 +35,8 @@ export function parseAdminMemberLearningDetail(data: unknown): AdminMemberLearni
         || !Array.isArray(value.sectionSummaries)
         || !value.sectionSummaries.every(section => section && isNonNegativeInteger(section.sectionId)
             && typeof section.sectionName === 'string' && isNonNegativeInteger(section.solvedCount)
-            && isNullableNonNegativeInteger(section.totalSolveSeconds))) {
+            && isNonNegativeInteger(section.correctCount) && section.correctCount <= section.solvedCount
+            && isPercentage(section.accuracyRate))) {
         throw new Error(typeof value?.message === 'string' && value.code !== 'SU'
             ? value.message : '회원 학습 현황 응답 형식을 확인할 수 없습니다.');
     }

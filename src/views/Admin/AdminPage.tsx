@@ -243,12 +243,12 @@ export default function AdminPage() {
         <aside className='qb-admin-sidebar' aria-label='관리자 메뉴'>
             <div className='qb-admin-brand'><strong>Question Bank</strong><span>관리자 페이지</span></div>
             <nav className='qb-admin-navigation'>
+                {navLink(MAIN_ABSOLUTE_PATH, '메인 페이지', true, 'home')}
                 <div className={`qb-admin-nav-parent ${isProblemPage ? 'is-active' : ''}`}><AdminIcon name='file' aria-hidden='true' /><span>문제 관리</span></div>
                 {navLink(ADMIN_UPLOAD_ABSOLUTE_PATH, '문제 업로드')}
                 {navLink(ADMIN_QUESTIONS_ABSOLUTE_PATH, '문제 목록')}
                 {navLink(ADMIN_APPROVALS_ABSOLUTE_PATH, '승인번호 관리', true)}
                 {navLink(ADMIN_MEMBERS_ABSOLUTE_PATH, '회원 관리', true, 'users')}
-                {navLink(MAIN_ABSOLUTE_PATH, '메인 페이지', true, 'home')}
             </nav>
         </aside>
         <main className={`qb-admin-main ${isListPage ? 'qb-admin-list-main' : ''} ${isMemberPage ? 'qb-admin-member-main' : ''}`}>

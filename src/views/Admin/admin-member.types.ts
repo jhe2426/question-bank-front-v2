@@ -17,7 +17,8 @@ export interface AdminMemberSectionLearning {
     sectionId: number;
     sectionName: string;
     solvedCount: number;
-    totalSolveSeconds: number | null;
+    correctCount: number;
+    accuracyRate: number;
 }
 
 export interface AdminMemberLearningDetail extends AdminMemberSummary {
