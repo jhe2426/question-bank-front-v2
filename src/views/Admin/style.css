@@ -79,7 +79,7 @@
 }
 
 .qb-admin-nav-parent.is-active,
-.qb-admin-nav-parent:hover {
+.qb-admin-nav-parent:not(.qb-admin-nav-section):hover {
   background: #edf3ff;
   color: #1265ef;
   font-weight: 650;

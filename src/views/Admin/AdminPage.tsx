@@ -244,7 +244,7 @@ export default function AdminPage() {
             <div className='qb-admin-brand'><strong>Question Bank</strong><span>관리자 페이지</span></div>
             <nav className='qb-admin-navigation'>
                 {navLink(MAIN_ABSOLUTE_PATH, '메인 페이지', true, 'home')}
-                <div className={`qb-admin-nav-parent ${isProblemPage ? 'is-active' : ''}`}><AdminIcon name='file' aria-hidden='true' /><span>문제 관리</span></div>
+                <div className={`qb-admin-nav-parent qb-admin-nav-section ${isProblemPage ? 'is-active' : ''}`}><AdminIcon name='file' aria-hidden='true' /><span>문제 관리</span></div>
                 {navLink(ADMIN_UPLOAD_ABSOLUTE_PATH, '문제 업로드')}
                 {navLink(ADMIN_QUESTIONS_ABSOLUTE_PATH, '문제 목록')}
                 {navLink(ADMIN_APPROVALS_ABSOLUTE_PATH, '승인번호 관리', true)}

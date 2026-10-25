@@ -20,6 +20,7 @@ import { PostKillerExamGradingRequestDto } from 'src/apis/dto/request/killerExam
 import { PostPastExamGradingRequestDto } from 'src/apis/dto/request/pastExam';
 import { PostMockExamGradingRequestDto } from 'src/apis/dto/request/mockExam';
 import { PostIncorrectQuestionGradingRequestDto } from 'src/apis/dto/request/incorrectQuestions';
+import { getQuestionPageIndex, QUESTIONS_PER_PAGE, sortPastExamQuestions } from './exam-pagination';
 
 // interface: 시험 문제 레코드 컴포넌트 속성 //
 interface QuestionTableItemProps {
@@ -41,7 +42,7 @@ const QuestionTableItem = memo(({ question, selectedAnswer, showExplanation, dis
 
     // render: 번호, 지문, 이미지, 객관식 보기 및 해설 렌더링 //
     return (
-        <article className='exam-question' id={`exam-question-${questionOrder}`} aria-labelledby={`exam-question-title-${questionId}`} tabIndex={-1}>
+        <article className='exam-question' id={`exam-question-${questionId}`} aria-labelledby={`exam-question-title-${questionId}`} tabIndex={-1}>
             <span className='exam-question-number' aria-hidden='true'>{String(questionOrder).padStart(2, '0')}</span>
             <div className='exam-question-content'>
                 <div className='exam-question-heading'>
@@ -82,7 +83,7 @@ interface AnswerTableItemProps {
     question: Question;
     selectedAnswer?: { answer: number; questionOrder: number };
     onClick: (questionId: number, questionOrder: number, answer: number) => void;
-    onQuestionClick: (questionOrder: number) => void;
+    onQuestionClick: (questionId: number) => void;
     isCurrentPage: boolean;
     disabled: boolean;
 }
@@ -94,7 +95,7 @@ const AnswerTableItem = memo(({ question, selectedAnswer, onClick, onQuestionCli
     // render: 문항 이동 버튼 및 보기별 선택 상태 렌더링 //
     return (
         <div className={`exam-answer-row${isCurrentPage ? ' is-current' : ''}`}>
-            <button type='button' className='exam-answer-number' aria-label={`${questionOrder}번 문제로 이동`} aria-current={isCurrentPage ? 'true' : undefined} onClick={() => onQuestionClick(questionOrder)}>{questionOrder}</button>
+            <button type='button' className='exam-answer-number' aria-label={`${questionOrder}번 문제로 이동`} aria-current={isCurrentPage ? 'true' : undefined} onClick={() => onQuestionClick(questionId)}>{questionOrder}</button>
             <fieldset className='exam-answer-options' disabled={disabled}>
                 <legend className='exam-sr-only'>{questionOrder}번 문제 답안 표기</legend>
                 {[1, 2, 3, 4].map(number => (
@@ -117,7 +118,7 @@ export default function Exam() {
     const EXAM_STORAGE_EXPIRE_TIME = 1000 * 60 * 60;
 
     // variable: 페이지당 문제 수 //
-    const QUESTION_COUNT_PER_PAGE = 3;
+    const QUESTION_COUNT_PER_PAGE = QUESTIONS_PER_PAGE;
 
     // state: accessToken 정보 상태 //
     const { accessToken } = useAuthStore();
@@ -152,8 +153,8 @@ export default function Exam() {
     const [loadAttempt, setLoadAttempt] = useState<number>(0);
     // state: 답안 제출 진행 상태 //
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    // state: 답안 표기란에서 이동할 문항 번호 //
-    const [targetQuestionOrder, setTargetQuestionOrder] = useState<number | null>(null);
+    // state: 답안 표기란에서 이동할 실제 문제 ID //
+    const [targetQuestionId, setTargetQuestionId] = useState<number | null>(null);
 
 
     // reference: 중복 제출 방지 및 타이머에서 사용할 최신 제출 함수 //
@@ -341,9 +342,10 @@ export default function Exam() {
         }
 
         const { questions } = responseBody as GetPastExamQuestionListResponseDto;
-        setQuestionList(questions);
-        setTotalList(questions);
-        setSelectedAnswers(createInitialAnswers(questions));
+        const sortedQuestions = sortPastExamQuestions(questions);
+        setQuestionList(sortedQuestions);
+        setTotalList(sortedQuestions);
+        setSelectedAnswers(createInitialAnswers(sortedQuestions));
     };
 
     // function: get killer exam question list response 처리 함수 //
@@ -471,16 +473,21 @@ export default function Exam() {
             [questionId]: {answer, questionOrder},
         }));    
 
-        const targetPage = Math.ceil(questionOrder / QUESTION_COUNT_PER_PAGE);
-        if (targetPage === currentPage) return;
-        setCurrentPage(targetPage);
+        const targetPageIndex = getQuestionPageIndex(questionList, questionId);
+        if (targetPageIndex === null) return;
 
-    }, [currentPage, setCurrentPage]);
+        const targetPage = targetPageIndex + 1;
+        if (targetPage !== currentPage) setCurrentPage(targetPage);
+
+    }, [currentPage, questionList, setCurrentPage]);
 
     // event handler: 답안 표기란 문항 번호 클릭 시 해당 문제로 이동 //
-    const onQuestionNavigateHandler = (questionOrder: number) => {
-        setCurrentPage(Math.ceil(questionOrder / QUESTION_COUNT_PER_PAGE));
-        setTargetQuestionOrder(questionOrder);
+    const onQuestionNavigateHandler = (questionId: number) => {
+        const targetPageIndex = getQuestionPageIndex(questionList, questionId);
+        if (targetPageIndex === null) return;
+
+        setCurrentPage(targetPageIndex + 1);
+        setTargetQuestionId(questionId);
     };
 
     // event handler: 기존 페이지 크기를 유지하는 이전·다음 문제 이동 //
@@ -612,13 +619,13 @@ export default function Exam() {
 
     // effect: 선택한 문항이 렌더링되면 해당 문제로 스크롤 및 키보드 초점 이동 //
     useEffect(() => {
-        if (targetQuestionOrder === null) return;
-        const questionElement = document.getElementById(`exam-question-${targetQuestionOrder}`);
+        if (targetQuestionId === null) return;
+        const questionElement = document.getElementById(`exam-question-${targetQuestionId}`);
         if (!questionElement) return;
         questionElement.focus({ preventScroll: true });
         questionElement.scrollIntoView({ block: 'start' });
-        setTargetQuestionOrder(null);
-    }, [viewList, targetQuestionOrder]);
+        setTargetQuestionId(null);
+    }, [viewList, targetQuestionId]);
 
     // effect: pathname가 변경될 시 실행할 함수 //
     useEffect(() => {
