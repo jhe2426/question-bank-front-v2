@@ -1,24 +1,32 @@
 export interface AdminMemberSummary {
-    memberId: number;
-    name: string;
+    userId: string;
+    userName: string;
     phoneNumber: string;
+}
+
+export interface AdminMemberPage {
+    users: AdminMemberSummary[];
+    totalElements: number;
+    totalPages: number;
+    page: number;
+    size: number;
+    last: boolean;
 }
 
 export interface AdminMemberSectionLearning {
     sectionId: number;
     sectionName: string;
-    solvedQuestionCount: number;
-    totalSolveMinutes: number;
+    solvedCount: number;
+    totalSolveSeconds: number | null;
 }
 
 export interface AdminMemberLearningDetail extends AdminMemberSummary {
-    totalSolveMinutes: number;
-    totalSolvedQuestionCount: number;
-    sections: AdminMemberSectionLearning[];
+    totalSolvedCount: number;
+    totalSolveSeconds: number | null;
+    sectionSummaries: AdminMemberSectionLearning[];
 }
 
 export interface AdminMemberDataSource {
-    isFixture: boolean;
-    getMembers: () => Promise<AdminMemberSummary[]>;
-    getMemberDetail: (memberId: number) => Promise<AdminMemberLearningDetail | null>;
+    getMembers: (keyword: string, page: number, accessToken: string) => Promise<AdminMemberPage>;
+    getMemberDetail: (userId: string, accessToken: string) => Promise<AdminMemberLearningDetail>;
 }

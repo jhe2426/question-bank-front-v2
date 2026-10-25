@@ -7,11 +7,19 @@ const { render, screen, fireEvent, waitFor, within, act } = require('@testing-li
 require('@testing-library/jest-dom');
 const App = require('../../App').default;
 const { useAuthStore } = require('../../stores');
-const { postAdminQuestionsRequest, getAdminCheckRequest } = require('../../apis');
+const { postAdminQuestionsRequest, getAdminCheckRequest, getAdminMembersRequest } = require('../../apis');
 
 jest.mock('../../stores', () => ({ useAuthStore: jest.fn() }));
 jest.mock('react-cookie', () => ({ useCookies: () => [{}] }));
-jest.mock('../../apis', () => ({ getPastExamRoundListRequest: jest.fn().mockResolvedValue({ code: 'SU', pastExamRounds: [{ pastExamId: 7, pastExamRound: 39 }] }), logoutRequest: jest.fn(), refreshAccessTokenRequest: jest.fn(), postAdminQuestionsRequest: jest.fn(), getAdminCheckRequest: jest.fn() }));
+jest.mock('../../apis', () => ({
+  getPastExamRoundListRequest: jest.fn().mockResolvedValue({ code: 'SU', pastExamRounds: [{ pastExamId: 7, pastExamRound: 39 }] }),
+  getAdminMembersRequest: jest.fn().mockResolvedValue({
+    users: [{ userId: 'member-a', userName: 'API 회원', phoneNumber: '010-1111-2222' }],
+    totalElements: 1, totalPages: 1, page: 0, size: 20, last: true
+  }),
+  getAdminMemberLearningSummaryRequest: jest.fn(),
+  logoutRequest: jest.fn(), refreshAccessTokenRequest: jest.fn(), postAdminQuestionsRequest: jest.fn(), getAdminCheckRequest: jest.fn()
+}));
 jest.mock('../Auth', () => () => <div>로그인 화면</div>);
 jest.mock('../Main', () => () => <div>메인 화면</div>);
 jest.mock('../MyPage', () => () => <div>마이페이지 화면</div>);
@@ -40,6 +48,10 @@ const change = (label, value, number = 1) => fireEvent.change(card(number).getBy
 beforeEach(() => {
   jest.clearAllMocks();
   getAdminCheckRequest.mockResolvedValue(200);
+  getAdminMembersRequest.mockResolvedValue({
+    users: [{ userId: 'member-a', userName: 'API 회원', phoneNumber: '010-1111-2222' }],
+    totalElements: 1, totalPages: 1, page: 0, size: 20, last: true
+  });
   useAuthStore.mockReturnValue({ accessToken: 'test-token', setAccessToken: jest.fn(), clearAuth: jest.fn() });
   URL.createObjectURL = jest.fn(file => `blob:${file.name}`);
   URL.revokeObjectURL = jest.fn();
@@ -255,6 +267,13 @@ test('member management menu opens inside the protected admin layout', async () 
   render(<MemoryRouter initialEntries={['/admin/members']}><App /></MemoryRouter>);
   expect(await screen.findByRole('heading', { name: '회원 목록', level: 1 })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: '회원 관리' })).toHaveClass('is-active');
-  expect(await screen.findByText('테스트 회원 A')).toBeInTheDocument();
-  expect(screen.getByText(/실제 회원 기록이 아닙니다/)).toBeInTheDocument();
+  expect(await screen.findByText('API 회원')).toBeInTheDocument();
+  expect(screen.getByText('member-a')).toBeInTheDocument();
+});
+
+test('main page menu leaves the standalone admin layout and opens the main page', async () => {
+  await open();
+  fireEvent.click(screen.getByRole('link', { name: '메인 페이지' }));
+  expect(await screen.findByText('메인 화면')).toBeInTheDocument();
+  expect(screen.queryByRole('navigation', { name: '관리자 메뉴' })).not.toBeInTheDocument();
 });

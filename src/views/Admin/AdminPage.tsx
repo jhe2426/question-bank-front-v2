@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import { approvalCodeRequest, postAdminQuestionsRequest } from 'src/apis';
 import { useAuthStore } from 'src/stores';
-import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH, ADMIN_MEMBERS_ABSOLUTE_PATH } from 'src/constants';
+import { ADMIN_UPLOAD_ABSOLUTE_PATH, ADMIN_QUESTIONS_ABSOLUTE_PATH, ADMIN_APPROVALS_ABSOLUTE_PATH, ADMIN_MEMBERS_ABSOLUTE_PATH, MAIN_ABSOLUTE_PATH } from 'src/constants';
 import QuestionCard from './QuestionCard';
 import QuestionList from './QuestionList';
 import MemberManagement from './MemberManagement';
@@ -20,6 +20,7 @@ function AdminIcon({ name, size = 20, strokeWidth = 1.8, ...props }: React.SVGPr
     close: <path d="m6 6 12 12M6 18 18 6" />,
     settings: <><path d="M4 7h16M4 17h16" /><circle cx="8" cy="7" r="3" fill="white" /><circle cx="16" cy="17" r="3" fill="white" /></>,
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10M9 20v-6h6v6" /></>,
     notice: <><circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 3h.01" /></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" {...props}>{paths[name]}</svg>;
@@ -247,6 +248,7 @@ export default function AdminPage() {
                 {navLink(ADMIN_QUESTIONS_ABSOLUTE_PATH, '문제 목록')}
                 {navLink(ADMIN_APPROVALS_ABSOLUTE_PATH, '승인번호 관리', true)}
                 {navLink(ADMIN_MEMBERS_ABSOLUTE_PATH, '회원 관리', true, 'users')}
+                {navLink(MAIN_ABSOLUTE_PATH, '메인 페이지', true, 'home')}
             </nav>
         </aside>
         <main className={`qb-admin-main ${isListPage ? 'qb-admin-list-main' : ''} ${isMemberPage ? 'qb-admin-member-main' : ''}`}>

@@ -1,5 +1,6 @@
 import { parseAdminQuestionDetail, PutAdminQuestionRequestDto } from './dto/response/admin/question-detail';
 import { QuestionListFilter, parseAdminQuestionPage } from './dto/response/admin/question-list';
+import { parseAdminMemberLearningDetail, parseAdminMemberPage } from './dto/response/admin/user';
 import { PostQuestionsRequestDto } from './dto/request/admin';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PostExamResponseDto, ResponseDto } from './dto/response';
@@ -65,6 +66,7 @@ const GET_UNIT_GRADING_RESULT_LIST_URL = (groupId: number) => `${MY_PAGE_MODULE_
 
 const GET_ADMIN_CHECK_URL = `${API_DOMAIN}/api/admin/check`;
 const POST_ADMIN_QUESTIONS_URL = `${API_DOMAIN}/api/admin/questions`;
+const GET_ADMIN_USERS_URL = '/api/admin/users';
 
 // variable: refresh 토큰을 사용하여 access Token 발급 진행 여부 //
 let isRefreshing = false;
@@ -403,6 +405,43 @@ export const getAdminQuestionsRequest = async (filter: QuestionListFilter, page:
             ? '관리자 권한이 필요합니다.' : '문제 목록을 불러오지 못했습니다. 연결 상태를 확인하고 다시 조회해주세요.'));
     }
     return parseAdminQuestionPage(data);
+};
+
+// function: 관리자 회원 목록/학습 현황 조회 — 기존 Axios 인증·재발급 경로 재사용 //
+const adminMemberError = (error: unknown, action: string): Error => {
+    const response = (error as AxiosError<{ message?: string; detail?: string }>).response;
+    const status = response?.status;
+    const fallback = status === 400 ? '검색 조건을 확인해주세요.'
+        : status === 401 ? '로그인이 만료되었습니다. 다시 로그인해주세요.'
+        : status === 403 ? '관리자 권한이 필요합니다.'
+        : status === 404 ? '회원을 찾을 수 없습니다.'
+        : status === 500 ? '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        : `${action}에 실패했습니다. 연결 상태를 확인해주세요.`;
+    return new Error(response?.data?.message || response?.data?.detail || fallback);
+};
+
+export const getAdminMembersRequest = async (keyword: string, page: number, accessToken: string) => {
+    try {
+        const response = await api.get(GET_ADMIN_USERS_URL, {
+            ...bearerAuthorization(accessToken),
+            params: { ...(keyword.trim() ? { keyword: keyword.trim() } : {}), page, size: 20 }
+        });
+        return parseAdminMemberPage(response.data);
+    } catch (error) {
+        if (error instanceof Error && !axios.isAxiosError(error)) throw error;
+        throw adminMemberError(error, '회원 목록 조회');
+    }
+};
+
+export const getAdminMemberLearningSummaryRequest = async (userId: string, accessToken: string) => {
+    try {
+        const response = await api.get(`${GET_ADMIN_USERS_URL}/${encodeURIComponent(userId)}/learning-summary`,
+            bearerAuthorization(accessToken));
+        return parseAdminMemberLearningDetail(response.data);
+    } catch (error) {
+        if (error instanceof Error && !axios.isAxiosError(error)) throw error;
+        throw adminMemberError(error, '회원 학습 현황 조회');
+    }
 };
 
 // function: 단일 관리자 문제 상세/수정/삭제 — 기존 Axios 인증·재발급 경로 재사용 //

@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useAuthStore } from 'src/stores';
 import { adminMemberDataSource } from './admin-member-data';
-import { AdminMemberDataSource, AdminMemberLearningDetail, AdminMemberSummary } from './admin-member.types';
+import { AdminMemberDataSource, AdminMemberLearningDetail, AdminMemberPage, AdminMemberSummary } from './admin-member.types';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -15,8 +16,9 @@ function MemberIcon({ name, size = 22 }: { name: 'user' | 'clock' | 'document' |
     return <svg aria-hidden='true' width={size} height={size} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round'>{paths[name]}</svg>;
 }
 
-export function formatTotalLearningTime(totalMinutes: number) {
-    const safeMinutes = Math.max(0, Math.floor(totalMinutes));
+export function formatLearningTime(totalSeconds: number | null) {
+    if (totalSeconds === null) return '기록 없음';
+    const safeMinutes = Math.max(0, Math.floor(totalSeconds / 60));
     const hours = Math.floor(safeMinutes / 60);
     const minutes = safeMinutes % 60;
     if (!hours) return `${minutes}분`;
@@ -27,12 +29,12 @@ interface MemberDetailModalProps {
     member: AdminMemberSummary;
     detail: AdminMemberLearningDetail | null;
     status: LoadState;
-    isFixture: boolean;
+    error: string;
     onRetry: () => void;
     onClose: () => void;
 }
 
-function MemberDetailModal({ member, detail, status, isFixture, onRetry, onClose }: MemberDetailModalProps) {
+function MemberDetailModal({ member, detail, status, error, onRetry, onClose }: MemberDetailModalProps) {
     const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -58,22 +60,19 @@ function MemberDetailModal({ member, detail, status, isFixture, onRetry, onClose
                 <button ref={closeButtonRef} type='button' className='qb-member-icon-button' aria-label='회원 상세 정보 닫기' onClick={onClose}><MemberIcon name='close' /></button>
             </header>
 
-            {isFixture && <p className='qb-member-fixture-notice' role='note'>백엔드 API 연결 전 화면 확인을 위한 테스트 데이터입니다.</p>}
-
             <section className='qb-member-profile' aria-label='기본 회원 정보'>
                 <span className='qb-member-avatar'><MemberIcon name='user' size={34} /></span>
-                <dl><div><dt>회원 이름</dt><dd>{detail?.name ?? member.name}</dd></div><div><dt>전화번호</dt><dd>{detail?.phoneNumber ?? member.phoneNumber}</dd></div></dl>
-                {isFixture && <span className='qb-member-fixture-badge'>테스트 데이터</span>}
+                <dl><div><dt>회원 이름</dt><dd>{detail?.userName ?? member.userName}</dd></div><div><dt>전화번호</dt><dd>{detail?.phoneNumber ?? member.phoneNumber}</dd></div></dl>
             </section>
 
             {status === 'loading' && <div className='qb-member-modal-state' role='status'>회원 학습 정보를 불러오고 있습니다…</div>}
-            {status === 'error' && <div className='qb-member-modal-state is-error' role='alert'><p>회원 학습 정보를 불러오지 못했습니다.</p><button type='button' onClick={onRetry}>다시 시도</button></div>}
+            {status === 'error' && <div className='qb-member-modal-state is-error' role='alert'><p>{error}</p><button type='button' onClick={onRetry}>다시 시도</button></div>}
             {status === 'ready' && detail && <div className='qb-member-modal-content'>
                 <section className='qb-member-learning-summary' aria-labelledby='qb-learning-summary-title'>
                     <h3 id='qb-learning-summary-title'>학습 현황 요약</h3>
                     <div className='qb-member-summary-grid'>
-                        <article><span><MemberIcon name='clock' /></span><div><small>총 문제 풀이 시간</small><strong>{formatTotalLearningTime(detail.totalSolveMinutes)}</strong></div></article>
-                        <article><span><MemberIcon name='document' /></span><div><small>총 풀이 문항 수</small><strong>{detail.totalSolvedQuestionCount.toLocaleString()}문제</strong></div></article>
+                        <article><span><MemberIcon name='clock' /></span><div><small>총 문제 풀이 시간</small><strong>{formatLearningTime(detail.totalSolveSeconds)}</strong></div></article>
+                        <article><span><MemberIcon name='document' /></span><div><small>총 풀이 문항 수</small><strong>{detail.totalSolvedCount.toLocaleString()}문제</strong></div></article>
                     </div>
                 </section>
 
@@ -82,14 +81,13 @@ function MemberDetailModal({ member, detail, status, isFixture, onRetry, onClose
                     <div className='qb-admin-table-wrap'>
                         <table className='qb-admin-table'>
                             <thead><tr><th>섹션명</th><th>풀이 문항 수</th><th>누적 풀이 시간</th></tr></thead>
-                            <tbody>{detail.sections.length ? detail.sections.map(section => <tr key={section.sectionId}>
-                                <td>{section.sectionName}</td><td>{section.solvedQuestionCount.toLocaleString()}문제</td><td>{section.totalSolveMinutes.toLocaleString()}분</td>
+                            <tbody>{detail.sectionSummaries.length ? detail.sectionSummaries.map(section => <tr key={section.sectionId}>
+                                <td>{section.sectionName}</td><td>{section.solvedCount.toLocaleString()}문제</td><td>{formatLearningTime(section.totalSolveSeconds)}</td>
                             </tr>) : <tr><td colSpan={3} className='qb-admin-empty'>학습 기록이 없습니다.</td></tr>}</tbody>
                         </table>
                     </div>
                 </section>
             </div>}
-            {status === 'ready' && !detail && <div className='qb-member-modal-state'>회원 상세 정보가 없습니다.</div>}
 
             <footer className='qb-member-modal-footer'><button type='button' onClick={onClose}>닫기</button></footer>
         </section>
@@ -97,43 +95,60 @@ function MemberDetailModal({ member, detail, status, isFixture, onRetry, onClose
 }
 
 export default function MemberManagement({ dataSource = adminMemberDataSource }: { dataSource?: AdminMemberDataSource }) {
-    const [members, setMembers] = useState<AdminMemberSummary[]>([]);
+    const { accessToken } = useAuthStore();
+    const [result, setResult] = useState<AdminMemberPage | null>(null);
     const [listStatus, setListStatus] = useState<LoadState>('loading');
+    const [listError, setListError] = useState('');
     const [query, setQuery] = useState('');
+    const [page, setPage] = useState(0);
     const [selectedMember, setSelectedMember] = useState<AdminMemberSummary | null>(null);
     const [detail, setDetail] = useState<AdminMemberLearningDetail | null>(null);
     const [detailStatus, setDetailStatus] = useState<LoadState>('loading');
+    const [detailError, setDetailError] = useState('');
     const listSequence = useRef(0);
     const detailSequence = useRef(0);
     const opener = useRef<HTMLButtonElement | null>(null);
 
-    const loadMembers = useCallback(async () => {
+    const loadMembers = useCallback(async (keyword: string, targetPage: number) => {
         const sequence = ++listSequence.current;
         setListStatus('loading');
+        setListError('');
         try {
-            const response = await dataSource.getMembers();
-            if (sequence === listSequence.current) { setMembers(response); setListStatus('ready'); }
-        } catch {
-            if (sequence === listSequence.current) setListStatus('error');
+            if (!accessToken) throw new Error('로그인 상태를 확인해주세요.');
+            const response = await dataSource.getMembers(keyword, targetPage, accessToken);
+            if (sequence === listSequence.current) { setResult(response); setListStatus('ready'); }
+        } catch (reason) {
+            if (sequence === listSequence.current) {
+                setResult(null);
+                setListError(reason instanceof Error ? reason.message : '회원 목록을 불러오지 못했습니다.');
+                setListStatus('error');
+            }
         }
-    }, [dataSource]);
+    }, [accessToken, dataSource]);
 
     useEffect(() => {
-        void loadMembers();
-        return () => { listSequence.current += 1; detailSequence.current += 1; };
-    }, [loadMembers]);
+        const timeout = window.setTimeout(() => void loadMembers(query, page), query ? 300 : 0);
+        return () => window.clearTimeout(timeout);
+    }, [loadMembers, page, query]);
+
+    useEffect(() => () => { listSequence.current += 1; detailSequence.current += 1; }, []);
 
     const loadDetail = useCallback(async (member: AdminMemberSummary) => {
         const sequence = ++detailSequence.current;
         setDetailStatus('loading');
+        setDetailError('');
         setDetail(null);
         try {
-            const response = await dataSource.getMemberDetail(member.memberId);
+            if (!accessToken) throw new Error('로그인 상태를 확인해주세요.');
+            const response = await dataSource.getMemberDetail(member.userId, accessToken);
             if (sequence === detailSequence.current) { setDetail(response); setDetailStatus('ready'); }
-        } catch {
-            if (sequence === detailSequence.current) setDetailStatus('error');
+        } catch (reason) {
+            if (sequence === detailSequence.current) {
+                setDetailError(reason instanceof Error ? reason.message : '회원 학습 정보를 불러오지 못했습니다.');
+                setDetailStatus('error');
+            }
         }
-    }, [dataSource]);
+    }, [accessToken, dataSource]);
 
     const openDetail = (member: AdminMemberSummary, button: HTMLButtonElement) => {
         opener.current = button;
@@ -145,31 +160,31 @@ export default function MemberManagement({ dataSource = adminMemberDataSource }:
         detailSequence.current += 1;
         setSelectedMember(null);
         setDetail(null);
+        setDetailError('');
         requestAnimationFrame(() => opener.current?.focus());
     }, []);
 
-    const filteredMembers = useMemo(() => {
-        const normalized = query.replace(/[\s-]/g, '').toLowerCase();
-        if (!normalized) return members;
-        return members.filter(member => `${member.name}${member.phoneNumber}`.replace(/[\s-]/g, '').toLowerCase().includes(normalized));
-    }, [members, query]);
-
+    const users = result?.users ?? [];
     return <section className='qb-member-management'>
-        {dataSource.isFixture && <p className='qb-member-fixture-notice' role='note'>현재 회원 목록과 학습 현황은 UI 확인용 테스트 데이터이며 실제 회원 기록이 아닙니다.</p>}
-        <label className='qb-member-search'><MemberIcon name='search' /><span className='qb-admin-sr-only'>회원 검색</span><input type='search' value={query} onChange={event => setQuery(event.target.value)} placeholder='테스트 회원 이름 또는 전화번호 검색' /></label>
+        <label className='qb-member-search'><MemberIcon name='search' /><span className='qb-admin-sr-only'>회원 검색</span><input type='search' value={query} maxLength={50} onChange={event => { setQuery(event.target.value); setPage(0); }} placeholder='회원 이름 또는 전화번호 검색' /></label>
 
         <section className='qb-admin-card qb-member-list-card' aria-busy={listStatus === 'loading'}>
-            <div className='qb-member-list-head'><div><h2>회원 목록</h2><p className='qb-admin-caption'>{listStatus === 'ready' ? `전체 ${members.length}명` : '회원 목록을 준비하고 있습니다.'}</p></div></div>
+            <div className='qb-member-list-head'><div><h2>회원 목록</h2><p className='qb-admin-caption'>{result ? `전체 ${result.totalElements.toLocaleString()}명` : '회원 목록을 준비하고 있습니다.'}</p></div><span className='qb-list-page-size'>20명씩 조회</span></div>
             {listStatus === 'loading' && <div className='qb-member-list-state' role='status'>회원 목록을 불러오고 있습니다…</div>}
-            {listStatus === 'error' && <div className='qb-member-list-state is-error' role='alert'><p>회원 목록을 불러오지 못했습니다.</p><button type='button' onClick={() => void loadMembers()}>다시 시도</button></div>}
+            {listStatus === 'error' && <div className='qb-member-list-state is-error' role='alert'><p>{listError}</p><button type='button' onClick={() => void loadMembers(query, page)}>다시 시도</button></div>}
             {listStatus === 'ready' && <div className='qb-admin-table-wrap'><table className='qb-admin-table qb-member-table'>
-                <thead><tr><th>회원 이름</th><th>전화번호</th><th>관리</th></tr></thead>
-                <tbody>{filteredMembers.length ? filteredMembers.map(member => <tr key={member.memberId}>
-                    <td>{member.name}</td><td>{member.phoneNumber}</td><td><button type='button' className='qb-member-detail-button' onClick={event => openDetail(member, event.currentTarget)}>회원정보</button></td>
-                </tr>) : <tr><td colSpan={3} className='qb-admin-empty'>{members.length ? '검색 결과가 없습니다.' : '등록된 회원이 없습니다.'}</td></tr>}</tbody>
+                <thead><tr><th>회원 ID</th><th>회원 이름</th><th>전화번호</th><th>관리</th></tr></thead>
+                <tbody>{users.length ? users.map(member => <tr key={member.userId}>
+                    <td>{member.userId}</td><td>{member.userName}</td><td>{member.phoneNumber}</td><td><button type='button' className='qb-member-detail-button' onClick={event => openDetail(member, event.currentTarget)}>회원정보</button></td>
+                </tr>) : <tr><td colSpan={4} className='qb-admin-empty'>{query.trim() ? '검색 결과가 없습니다.' : '등록된 회원이 없습니다.'}</td></tr>}</tbody>
             </table></div>}
+            {listStatus === 'ready' && result && <nav className='qb-list-pagination' aria-label='회원 목록 페이지 이동'>
+                <button type='button' className='qb-editor-secondary' disabled={result.page === 0} onClick={() => setPage(result.page - 1)}>이전</button>
+                <span aria-live='polite'>전체 {result.totalElements.toLocaleString()}명 · {result.totalPages ? result.page + 1 : 0} / {result.totalPages} 페이지</span>
+                <button type='button' className='qb-editor-secondary' disabled={result.last || result.page + 1 >= result.totalPages} onClick={() => setPage(result.page + 1)}>다음</button>
+            </nav>}
         </section>
 
-        {selectedMember && <MemberDetailModal member={selectedMember} detail={detail} status={detailStatus} isFixture={dataSource.isFixture} onRetry={() => void loadDetail(selectedMember)} onClose={closeDetail} />}
+        {selectedMember && <MemberDetailModal member={selectedMember} detail={detail} status={detailStatus} error={detailError} onRetry={() => void loadDetail(selectedMember)} onClose={closeDetail} />}
     </section>;
 }
